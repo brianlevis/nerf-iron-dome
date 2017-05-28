@@ -8,54 +8,84 @@
 
 */
 
-#define REV_UP_TIME 800
-#define AUTOMATIC true
+#define REV_UP_TIME 750
+#define AUTOMATIC false
+#define SERIAL true
+#define ENABLE true
 
 const int pusherSwitchPin      =  4;
 const int accelerationMotorPin =  7;
 const int pusherMotorPin       =  8;
 const int buttonPin            = 12;
+const int ledPin               = 13;
 
 unsigned long startTime;
+int inByte;
+
+void pusherOn() {
+  if (ENABLE) digitalWrite(pusherMotorPin, LOW);
+}
+
+void pusherOff() {
+  digitalWrite(pusherMotorPin, HIGH);
+}
+
+void waitForInput() {
+  if (!SERIAL) while (digitalRead(buttonPin) == HIGH);
+  else {
+    do {
+      inByte = Serial.read();
+    } while (inByte != 'f');
+    Serial.println("received f");
+  }
+}
 
 void revUp() {
-  digitalWrite(accelerationMotorPin, HIGH);
+  if (ENABLE) digitalWrite(accelerationMotorPin, LOW);
 }
 
 void revDown() {
-  digitalWrite(accelerationMotorPin, LOW);
+  digitalWrite(accelerationMotorPin, HIGH);
 }
 
 void fire() {
+  if (!ENABLE) {
+    digitalWrite(ledPin, HIGH);
+    delay(1000);
+    digitalWrite(ledPin, LOW);
+    return;
+  }
   if (AUTOMATIC) {
-    digitalWrite(pusherMotorPin, HIGH);
+    pusherOn();
     delay(4000);
-    digitalWrite(pusherMotorPin, HIGH);
+    pusherOff();
   }
   while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
   while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
 }
 
 void pulsePusher() {
-  digitalWrite(pusherMotorPin, HIGH);
+  pusherOn();
   delay(15);
-  digitalWrite(pusherMotorPin, LOW);
+  pusherOff();
   delay(80);
 }
 
 void setup() {
+  Serial.begin(9600);
   pinMode(pusherSwitchPin, INPUT_PULLUP);
   pinMode(accelerationMotorPin, OUTPUT);
   pinMode(pusherMotorPin, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
-  while (digitalRead(buttonPin) == HIGH);
-  delay(1000);
+  pinMode(ledPin, OUTPUT);
   revDown();
+  pusherOff();
+  waitForInput();
   while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
 }
 
 void loop() {
-  while (digitalRead(buttonPin) == HIGH);
+  waitForInput();
   startTime = millis();
   revUp();
   while (millis() - startTime < REV_UP_TIME);
