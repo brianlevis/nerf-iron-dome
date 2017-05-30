@@ -57,7 +57,7 @@ void fire() {
   }
   if (AUTOMATIC) {
     pusherOn();
-    delay(4000);
+    delay(8000);
     pusherOff();
   }
   while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
