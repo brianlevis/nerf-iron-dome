@@ -1,0 +1,12 @@
+Flask==0.12.2
+Flask-SocketIO==2.8.6
+Jinja2==2.9.6
+MarkupSafe==1.0
+Werkzeug==0.12.2
+argparse==1.2.1
+click==6.7
+itsdangerous==0.24
+python-engineio==1.5.4
+python-socketio==1.7.5
+six==1.10.0
+wsgiref==0.1.2
