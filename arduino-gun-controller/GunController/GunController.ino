@@ -8,60 +8,122 @@
 
 */
 
-#define REV_UP_TIME 750
-#define AUTOMATIC false
-#define SERIAL true
-#define ENABLE true
+#include <Servo.h>
+
+#define REV_UP_TIME    200
+#define MAX_TILT_UP   2000
+#define MAX_TILT_DOWN 1300
+#define MAX_PAN_LEFT   800
+#define MAX_PAN_RIGHT 2200
+#define TILT_MIDPOINT 1500
+#define PAN_MIDPOINT  1455
 
 const int pusherSwitchPin      =  4;
 const int accelerationMotorPin =  7;
 const int pusherMotorPin       =  8;
+const int tiltServoPin         = 10;
+const int panServoPin          = 11;
 const int buttonPin            = 12;
 const int ledPin               = 13;
 
+const int fireCode = 'f';
+const int tiltCode = 't';
+const int panCode =  'p';
+
 unsigned long startTime;
-int inByte;
+int serialAction;
+unsigned int serialParameter;
+String s;
+// PWM range 556-2420 => 1488
+Servo panServo;
+Servo tiltServo;
+
+bool withinRange(int var, int low, int high) {
+  return low <= var && var <= high;
+}
 
 void pusherOn() {
-  if (ENABLE) digitalWrite(pusherMotorPin, LOW);
+  digitalWrite(pusherMotorPin, LOW);
 }
 
 void pusherOff() {
   digitalWrite(pusherMotorPin, HIGH);
 }
 
-void waitForInput() {
-  if (!SERIAL) while (digitalRead(buttonPin) == HIGH);
-  else {
-    do {
-      inByte = Serial.read();
-    } while (inByte != 'f');
-    Serial.println("received f");
+void pan(int location) {
+  if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT))
+    panServo.writeMicroseconds(location);
+  else
+    Serial.println("Pan location out of range!");
+}
+
+void tilt(int location) {
+  if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP))
+    tiltServo.writeMicroseconds(location);
+  else
+    Serial.println("Tilt location out of range!");
+}
+
+int waitForInput() {
+  Serial.println("Waiting for action code...");
+  do {
+    serialAction = Serial.read();
+  } while (serialAction == -1);
+  Serial.println("Waiting for parameter...");
+  do {
+      s = Serial.readString();
+      serialParameter = s.toInt();
+    } while (serialParameter == 0);
+  switch (serialAction) {
+    case fireCode:
+      fire(serialParameter);
+      break;
+    case tiltCode:
+      tilt(serialParameter);
+      break;
+    case panCode:
+      pan(serialParameter);
+      break;
+    default:
+      Serial.println("Error: read improper action code");
   }
 }
 
+void verifyComms() {
+  do {
+    Serial.println("Please send 'v'...");
+    do {
+      serialAction = Serial.read();
+    } while (serialAction == -1);
+    Serial.println("Please send 1500...");
+    do {
+      s = Serial.readString();
+      serialParameter = s.toInt();
+    } while (serialParameter == 0);
+  } while (serialAction != 'v' || serialParameter != 1500);
+}
+
 void revUp() {
-  if (ENABLE) digitalWrite(accelerationMotorPin, LOW);
+  digitalWrite(accelerationMotorPin, LOW);
 }
 
 void revDown() {
   digitalWrite(accelerationMotorPin, HIGH);
 }
 
-void fire() {
-  if (!ENABLE) {
-    digitalWrite(ledPin, HIGH);
-    delay(1000);
-    digitalWrite(ledPin, LOW);
+void fire(int numShots) {
+  if (!withinRange(numShots, 0, 37)) {
+    Serial.println("Inproper number of shots received!");
     return;
   }
-  if (AUTOMATIC) {
-    pusherOn();
-    delay(8000);
-    pusherOff();
+  startTime = millis();
+  revUp();
+  while (millis() - startTime < REV_UP_TIME);
+  for ( ; numShots > 0; numShots--) {
+    while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
+    while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
   }
-  while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
-  while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
+  revDown();
 }
 
 void pulsePusher() {
@@ -78,18 +140,17 @@ void setup() {
   pinMode(pusherMotorPin, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
+  panServo.attach(panServoPin);
+  tiltServo.attach(tiltServoPin);
+  pan(PAN_MIDPOINT);
+  tilt(TILT_MIDPOINT);  
   revDown();
   pusherOff();
-  waitForInput();
+  verifyComms();
   while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
 }
 
 void loop() {
   waitForInput();
-  startTime = millis();
-  revUp();
-  while (millis() - startTime < REV_UP_TIME);
-  fire();
-  revDown();
 }
 
