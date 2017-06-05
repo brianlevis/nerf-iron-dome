@@ -46,12 +46,27 @@ bool withinRange(int var, int low, int high) {
   return low <= var && var <= high;
 }
 
+void revUp() {
+  digitalWrite(accelerationMotorPin, LOW);
+}
+
+void revDown() {
+  digitalWrite(accelerationMotorPin, HIGH);
+}
+
 void pusherOn() {
   digitalWrite(pusherMotorPin, LOW);
 }
 
 void pusherOff() {
   digitalWrite(pusherMotorPin, HIGH);
+}
+
+void pulsePusher() {
+  pusherOn();
+  delay(15);
+  pusherOff();
+  delay(80);
 }
 
 void pan(int location) {
@@ -83,7 +98,7 @@ void waitForInput() {
     return;
   }
   byte actionCode = getNextByte();
-  int parameter = int(getNextByte) << 4 + int(getNextByte);
+  int parameter = (int(getNextByte) << 4) + int(getNextByte);
   byte end = getNextByte();
   if (end != 'e') {
     Serial.write('x');
@@ -91,13 +106,13 @@ void waitForInput() {
   }
   switch (actionCode) {
     case fireCode:
-      fire(serialParameter);
+      fire(parameter);
       break;
     case tiltCode:
-      tilt(serialParameter);
+      tilt(parameter);
       break;
     case panCode:
-      pan(serialParameter);
+      pan(parameter);
       break;
     default:
       Serial.write('x');
@@ -118,14 +133,6 @@ void verifyComms() {
   } while (serialAction != 'v' || serialParameter != 1500);
 }
 
-void revUp() {
-  digitalWrite(accelerationMotorPin, LOW);
-}
-
-void revDown() {
-  digitalWrite(accelerationMotorPin, HIGH);
-}
-
 void fire(int numShots) {
   if (!withinRange(numShots, 0, 37)) {
     Serial.println("Inproper number of shots received!");
@@ -139,13 +146,6 @@ void fire(int numShots) {
     while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
   }
   revDown();
-}
-
-void pulsePusher() {
-  pusherOn();
-  delay(15);
-  pusherOff();
-  delay(80);
 }
 
 void setup() {
