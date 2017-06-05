@@ -26,9 +26,13 @@ const int panServoPin          = 11;
 const int buttonPin            = 12;
 const int ledPin               = 13;
 
-const int fireCode = 'f';
-const int tiltCode = 't';
-const int panCode =  'p';
+const char startCode = 's';
+const char waitCode = 'w';
+const char fireCode = 'f';
+const char tiltCode = 't';
+const char panCode =  'p';
+const char endCode = 'e';
+const char errorCode = 'x';
 
 unsigned long startTime;
 int serialAction;
@@ -64,17 +68,28 @@ void tilt(int location) {
     Serial.println("Tilt location out of range!");
 }
 
-int waitForInput() {
-  Serial.println("Waiting for action code...");
+byte getNextByte() {
   do {
     serialAction = Serial.read();
   } while (serialAction == -1);
-  Serial.println("Waiting for parameter...");
-  do {
-      s = Serial.readString();
-      serialParameter = s.toInt();
-    } while (serialParameter == 0);
-  switch (serialAction) {
+  return byte(serialAction);
+}
+
+void waitForInput() {
+  Serial.write('w');
+  byte start = getNextByte();
+  if (start != 's') {
+    Serial.write('x');
+    return;
+  }
+  byte actionCode = getNextByte();
+  int parameter = int(getNextByte) << 4 + int(getNextByte);
+  byte end = getNextByte();
+  if (end != 'e') {
+    Serial.write('x');
+    return;
+  }
+  switch (actionCode) {
     case fireCode:
       fire(serialParameter);
       break;
@@ -85,13 +100,13 @@ int waitForInput() {
       pan(serialParameter);
       break;
     default:
-      Serial.println("Error: read improper action code");
+      Serial.write('x');
   }
 }
 
 void verifyComms() {
   do {
-    Serial.println("Please send 'v'...");
+    Serial.println("Waiting for a verification message...");
     do {
       serialAction = Serial.read();
     } while (serialAction == -1);
@@ -146,7 +161,7 @@ void setup() {
   tilt(TILT_MIDPOINT);  
   revDown();
   pusherOff();
-  verifyComms();
+//  verifyComms();
   while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
 }
 
