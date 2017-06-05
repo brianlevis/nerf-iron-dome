@@ -83,6 +83,21 @@ void tilt(int location) {
     Serial.println("Tilt location out of range!");
 }
 
+void fire(int numShots) {
+  if (!withinRange(numShots, 0, 37)) {
+    Serial.println("Inproper number of shots received!");
+    return;
+  }
+  startTime = millis();
+  revUp();
+  while (millis() - startTime < REV_UP_TIME);
+  for ( ; numShots > 0; numShots--) {
+    while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
+    while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
+  }
+  revDown();
+}
+
 byte getNextByte() {
   do {
     serialAction = Serial.read();
@@ -93,15 +108,17 @@ byte getNextByte() {
 void waitForInput() {
   Serial.write('w');
   byte start = getNextByte();
-  if (start != 's') {
-    Serial.write('x');
+  if (start != startCode) {
+    Serial.println("Invalid start byte");
     return;
   }
   byte actionCode = getNextByte();
-  int parameter = (int(getNextByte) << 4) + int(getNextByte);
+  Serial.write(actionCode);
+  int parameter = (int(getNextByte()) << 4) + int(getNextByte());
+  Serial.println(parameter);
   byte end = getNextByte();
-  if (end != 'e') {
-    Serial.write('x');
+  if (end != endCode) {
+    Serial.println("Invalid start byte");
     return;
   }
   switch (actionCode) {
@@ -115,7 +132,7 @@ void waitForInput() {
       pan(parameter);
       break;
     default:
-      Serial.write('x');
+      Serial.println("Invalid action code");
   }
 }
 
@@ -131,21 +148,6 @@ void verifyComms() {
       serialParameter = s.toInt();
     } while (serialParameter == 0);
   } while (serialAction != 'v' || serialParameter != 1500);
-}
-
-void fire(int numShots) {
-  if (!withinRange(numShots, 0, 37)) {
-    Serial.println("Inproper number of shots received!");
-    return;
-  }
-  startTime = millis();
-  revUp();
-  while (millis() - startTime < REV_UP_TIME);
-  for ( ; numShots > 0; numShots--) {
-    while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
-    while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
-  }
-  revDown();
 }
 
 void setup() {
