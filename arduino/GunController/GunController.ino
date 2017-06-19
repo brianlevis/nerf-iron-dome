@@ -105,18 +105,6 @@ void rev(int argument) {
     }
 }
 
-void fire(int argument) {
-    if (withinRange(numShots, 1, 37)) {
-        fireShots(argument)
-    } else if (argument == 0) {
-        resetPusher();
-    } else if (argument == 65535) {
-        pusherOn();
-    } else {
-        Serial.println("Inproper number of shots received!");
-    }
-}
-
 void fireShots(int numShots) {
     startTime = millis();
     revUp();
@@ -126,6 +114,18 @@ void fireShots(int numShots) {
         while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
     }
     revDown();
+}
+
+void fire(int argument) {
+    if (withinRange(argument, 1, 37)) {
+        fireShots(argument);
+    } else if (argument == 0) {
+        resetPusher();
+    } else if (argument == 65535) {
+        pusherOn();
+    } else {
+        Serial.println("Inproper number of shots received!");
+    }
 }
 
 byte getNextByte() {

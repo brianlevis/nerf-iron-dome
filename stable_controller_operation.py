@@ -45,19 +45,19 @@ auto_firing = False
 auto_revving = False
 while not joy.Back():
     if auto:
-        if joy.rightTrigger() > .5 and auto_firing = False:
+        if joy.rightTrigger() > .5 and not auto_firing and auto_revving:
             send_command('f', 65535)
             auto_firing = True
-        elif joy.rightTrigger() < .5 and and auto_firing = True:
+        elif joy.rightTrigger() < .5 and auto_firing:
             send_command('f', 0)
             auto_firing = False
-        if joy.leftTrigger() > .5 and auto_revving = False:
+        if joy.leftTrigger() > .5 and not auto_revving:
             send_command('r', 65535)
             auto_revving = True
-        elif joy.leftTrigger() < .5 and auto_revving = True:
+        elif joy.leftTrigger() < .5 and auto_revving:
             send_command('r', 0)
             auto_revving = False
-        if joy.X() and time() > time0 + 1:
+        if joy.X() and time() > time0 + 1 and not auto_firing and not auto_revving:
             subprocess.call(semiauto_cmd)
             time0 = time()
             auto = False
