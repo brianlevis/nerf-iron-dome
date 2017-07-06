@@ -11,6 +11,7 @@ Manual input on pin 12
 #include <Servo.h>
 
 #define REV_UP_TIME    300
+#define MAX_FIRE_TIME 1000
 #define MAX_TILT_UP   2000
 #define MAX_TILT_DOWN 1300
 #define MAX_PAN_LEFT   800
@@ -27,12 +28,12 @@ const int buttonPin            = 12;
 const int ledPin               = 13;
 
 const char startCode = 's';
-const char waitCode = 'w';
-const char revCode = 'r';
-const char fireCode = 'f';
-const char tiltCode = 't';
-const char panCode =  'p';
-const char endCode = 'e';
+const char waitCode  = 'w';
+const char revCode   = 'r';
+const char fireCode  = 'f';
+const char tiltCode  = 't';
+const char panCode   = 'p';
+const char endCode   = 'e';
 const char errorCode = 'x';
 
 const int startAutoFireCode = 65535;
@@ -45,6 +46,11 @@ String s;
 // PWM range 556-2420 => 1488
 Servo panServo;
 Servo tiltServo;
+
+void reportError(char errorMessage[]) {
+    Serial.write(errorCode);
+    Serial.println(errorMessage);
+}
 
 bool withinRange(int var, int low, int high) {
     return low <= var && var <= high;
@@ -83,7 +89,7 @@ void pan(int location) {
         panServo.writeMicroseconds(location);
     }
     else {
-        Serial.println("Pan location out of range!");
+        reportError("Pan location out of range!");
     }
 }
 
@@ -91,7 +97,7 @@ void tilt(int location) {
     if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
         tiltServo.writeMicroseconds(location);
     } else {
-        Serial.println("Tilt location out of range!");
+        reportError("Tilt location out of range!");
     }
 }
 
@@ -101,7 +107,7 @@ void rev(int argument) {
     } else if (argument == 65535) {
         revUp();
     } else {
-        Serial.println("Bad rev argument!");
+        reportError("Bad rev argument!");
     }
 }
 
@@ -110,8 +116,13 @@ void fireShots(int numShots) {
     revUp();
     while (millis() - startTime < REV_UP_TIME);
     for ( ; numShots > 0; numShots--) {
-        while (digitalRead(pusherSwitchPin) == LOW) pulsePusher();
-        while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
+        startTime = millis();
+        while (digitalRead(pusherSwitchPin) == LOW && millis() - startTime < MAX_FIRE_TIME) pulsePusher();
+        while (digitalRead(pusherSwitchPin) == HIGH && millis() - startTime < MAX_FIRE_TIME) pulsePusher();
+        if (millis() - startTime > MAX_FIRE_TIME) {
+            revDown();
+            reportError("Firing sensor not responding!");
+        }
     }
     revDown();
 }
@@ -124,7 +135,7 @@ void fire(int argument) {
     } else if (argument == 65535) {
         pusherOn();
     } else {
-        Serial.println("Inproper number of shots received!");
+        reportError("Inproper number of shots received!");
     }
 }
 
@@ -136,10 +147,10 @@ byte getNextByte() {
 }
 
 void waitForInput() {
-    Serial.write('w');
+    Serial.write(waitCode);
     byte start = getNextByte();
     if (start != startCode) {
-        Serial.println("Invalid start byte");
+        reportError("Invalid start byte");
         return;
     }
     byte actionCode = getNextByte();
@@ -148,7 +159,7 @@ void waitForInput() {
     // Serial.println(parameter);
     byte end = getNextByte();
     if (end != endCode) {
-        Serial.println("Invalid start byte");
+        reportError("Invalid start byte");
         return;
     }
     switch (actionCode) {
@@ -165,7 +176,7 @@ void waitForInput() {
             rev(parameter);
             break;
         default:
-            Serial.println("Invalid action code");
+            reportError("Invalid action code");
     }
 }
 
