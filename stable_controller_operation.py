@@ -7,7 +7,7 @@ import subprocess
 from time import time
 
 joy = xbox.Joystick()
-ser = serial.Serial('/dev/ttyACM0')
+ser = serial.Serial('/dev/ttyACM0', 9600)
 
 semiauto_cmd = ["espeak", "-vlv+m3", "-s300", "'Semiautomatik'"]
 auto_cmd = ["espeak", "-vlv+m3", "-s300", "'Automatik'"]
@@ -22,6 +22,15 @@ auto_cmd = ["espeak", "-vlv+m3", "-s300", "'Automatik'"]
 #define TILT_MIDPOINT 1500
 #define PAN_MIDPOINT  1455
 
+startCode = 's'
+waitCode  = 'w'
+revCode   = 'r'
+fireCode  = 'f'
+tiltCode  = 't'
+panCode   = 'p'
+endCode   = 'e'
+errorCode = 'x'
+
 x = 0
 y = 0
 auto = False
@@ -33,6 +42,13 @@ def tilt(val):
     return 1650 + val * 350
 
 def send_command(action_code, argument):
+    status = serial.read()
+    if status == 'x':
+        print('ERROR:', serial.readline())
+        exit(1)
+    elif status != 'w':
+        print('Incorrect message prefix:', status)
+        exit(1)
     argument=int(argument)
     print('sending %s %d'%(action_code,argument))
     ser.write(bytes([115, ord(action_code), (argument & 0b1111111100000000) >> 8, argument & 0b11111111, 101]))
