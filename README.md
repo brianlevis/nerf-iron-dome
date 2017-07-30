@@ -1,9 +1,11 @@
 # Nerf Iron Dome
+![Turret]
+(https://github.com/brianlevis/nerf-iron-dome/blob/master/turret.jpg)
 ## Contributors:
 [Brian Levis](https://github.com/brianlevis) • [Luciano Vinas](https://github.com/lucianovinas) • [Andrew Chan](https://github.com/theandrewchan)
 ## Summary
 The aim of this project is to build a nerf turret that can do cool stuff. Cool stuff might include:
-* Targeting a moving object
+* Targeting a moving object (tennis ball?)
 * Recognizing faces
 * Being remote controlled
 * Guarding an object
