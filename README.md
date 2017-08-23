@@ -1,5 +1,5 @@
 # Nerf Iron Dome
-![Turret](https://github.com/brianlevis/nerf-iron-dome/blob/master/turret.jpg)
+![Turret](https://github.com/brianlevis/nerf-iron-dome/master/turret.jpg)
 ## Contributors:
 [Brian Levis](https://github.com/brianlevis) • [Luciano Vinas](https://github.com/lucianovinas) • [Andrew Chan](https://github.com/theandrewchan)
 ## Summary
