@@ -12,6 +12,8 @@ ser = serial.Serial('/dev/ttyACM0', 9600)
 semiauto_cmd = ["espeak", "-vlv+m3", "-s300", "'Semiautomatik'"]
 auto_cmd = ["espeak", "-vlv+m3", "-s300", "'Automatik'"]
 
+# USAGE: Must be run with "sudo python3 stable_controller_operation.py"
+
 # espeak -vlv+m3 -s300 "Semiautomatik"
 # espeak -vlv+m3 -s300 "Automatik"
 

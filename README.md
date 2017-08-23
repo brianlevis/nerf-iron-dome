@@ -18,6 +18,6 @@ Turret base inspired by Britt Michelsen's [Nerf Vulcan Sentry Gun](http://www.in
 [xboxdrv python wrapper class](https://github.com/FRC4564/Xbox)
 ## Tech
 ### Hardware
-Nerf RapidStrike with pusher and flywheel motors hooked up to 7.5V@13.5A power supply and 5V relay module. Super high torque HS-805BB servos hooked up to 6V@3A power supply. Arduino controls all actuators, and communicates over serial with Raspberry Pi. Raspberry Pi Camera v2 mounted on top of gun. To be polished and elaborated. Possibly will be mounted on drum tripod.
+Nerf RapidStrike with pusher and flywheel motors hooked up to 7.5V 100W power supply and 5V relay module. Super high torque HS-805BB servos hooked up to 6V 18W power supply. Arduino controls all actuators, and communicates over serial with Raspberry Pi. Raspberry Pi Camera v2 mounted on top of gun. Possibly will be mounted on drum tripod.
 ### Software
 [Python Connector Design](https://docs.google.com/document/d/1Gke5QFeYasZ8_wYOghZAU99f_aja3h15VcXeIRREn2o/pub)
