@@ -1,5 +1,5 @@
 # Nerf Iron Dome
-![Turret](https://github.com/brianlevis/nerf-iron-dome/master/turret.jpg)
+![Turret](https://github.com/brianlevis/nerf-iron-dome/raw/master/turret.jpg)
 ## Contributors:
 [Brian Levis](https://github.com/brianlevis) • [Luciano Vinas](https://github.com/lucianovinas) • [Andrew Chan](https://github.com/theandrewchan)
 ## Summary
@@ -11,8 +11,9 @@ The aim of this project is to build a nerf turret that can do cool stuff. Cool s
 * Reenacting [this scene](https://www.youtube.com/watch?v=mrXfh4hENKs) from RoboCop
 ## Status
 The turret has been constructed, and may be controlled via a USB Xbox 360 Controller. It's electronics are spaghetti.
+API is being rewritten to be higher performing, and image processing work is in progress.
 ## TODO
-Solder electronics, mount camera, do software. Also add pics/3D models to git.
+Solder electronics, do software. Also add 3D models to git.
 ## Credits
 Turret base inspired by Britt Michelsen's [Nerf Vulcan Sentry Gun](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/), Nerf RapidStrike [teardown guide](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/),
 [xboxdrv python wrapper class](https://github.com/FRC4564/Xbox)
