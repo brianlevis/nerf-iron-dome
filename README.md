@@ -1,6 +1,6 @@
 # Nerf Iron Dome
 ![Turret](https://github.com/brianlevis/nerf-iron-dome/raw/master/turret.jpg)
-## Contributors:
+## Contributors
 [Brian Levis](https://github.com/brianlevis) • [Luciano Vinas](https://github.com/lucianovinas) • [Andrew Chan](https://github.com/theandrewchan)
 ## Summary
 The aim of this project is to build a nerf turret that can do cool stuff. Cool stuff might include:
@@ -9,6 +9,7 @@ The aim of this project is to build a nerf turret that can do cool stuff. Cool s
 * Being remote controlled
 * Guarding an object
 * Reenacting [this scene](https://www.youtube.com/watch?v=mrXfh4hENKs) from RoboCop
+
 ## Status
 The turret has been constructed, and may be controlled via a USB Xbox 360 Controller. It's electronics are spaghetti.
 API is being rewritten to be higher performing, and image processing work is in progress.
