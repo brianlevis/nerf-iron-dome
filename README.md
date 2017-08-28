@@ -14,7 +14,15 @@ The aim of this project is to build a nerf turret that can do cool stuff. Cool s
 The turret has been constructed, and may be controlled via a USB Xbox 360 Controller. It's electronics are spaghetti.
 API is being rewritten to be higher performing, and image processing work is in progress.
 ## TODO
-Solder electronics, do software. Also add 3D models to git.
+Solder electronics, add 3D models to git.
+Software:
+* Rewrite turret controller and python API
+  * Pan/tilt
+  * Fire
+  * Watchdog
+* Recognize tennis ball
+* Motion smoothing
+
 ## Credits
 Turret base inspired by Britt Michelsen's [Nerf Vulcan Sentry Gun](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/), Nerf RapidStrike [teardown guide](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/),
 [xboxdrv python wrapper class](https://github.com/FRC4564/Xbox)
