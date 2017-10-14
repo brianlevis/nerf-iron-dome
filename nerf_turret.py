@@ -17,7 +17,9 @@ heartbeatCode = 'h'
 killCode      = 'k'
 
 command_queue = []
-p.insert(0,obj)
+
+def add_to_queue(command):
+    command_queue.insert(0, command)
 
 def process_queue():
     if len(command_queue) == 0:
@@ -37,16 +39,19 @@ def process_queue():
 
 def send_command(command):
     action_code, argument = command
-    status = serial.read()
-    if status == 'x':
+    status = ser.read()
+    if status == b'\x00':
+        status = ser.read()
+    if status == b'x':
         print('ERROR:', serial.readline())
         exit(1)
-    elif status != 'w':
+    elif status != b'w':
         print('Incorrect message prefix:', status)
         exit(1)
     argument = int(argument)
     print('sending %s %d'%(action_code, argument))
     ser.write(bytes([115, ord(action_code), (argument & 0b1111111100000000) >> 8, argument & 0b11111111, 101]))
+
 
 # time0 = time()
 # time1 = time()

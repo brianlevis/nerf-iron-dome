@@ -19,7 +19,7 @@ Manual input on pin 12
 #define TILT_MIDPOINT   1500
 #define PAN_MIDPOINT    1455
 
-#define ACCELERATION       0.2
+#define ACCELERATION       0.1
 #define UPDATE_INTERVAL 2000
 
 const int pusherSwitchPin      =  4;
@@ -53,9 +53,9 @@ const int startAutoFireCode = 65535;
 const int stopAutoFireCode = 0;
 
 // state variables
-int panState         = PAN_MIDPOINT;
-int panGoal          = panState;
-int panHalfway       = panState;
+float panState       = PAN_MIDPOINT;
+int panGoal          = (int) panState;
+int panHalfway       = (int) panState;
 float panVelocity    = 0.0;
 int tiltGoal         = TILT_MIDPOINT;
 int tiltState        = TILT_MIDPOINT;
@@ -114,6 +114,7 @@ void resetPusher() {
 
 void setPanLocation(int argument) {
     // argument: [-700, 700]
+    panHalfway = (panGoal + (PAN_MIDPOINT + argument)) / 2;
     panGoal = PAN_MIDPOINT + argument;
 }
 
@@ -286,6 +287,7 @@ void setup() {
     tilt(TILT_MIDPOINT);
     revDown();
     resetPusher();
+    //Serial.flush();
     requestInput();
 }
 
@@ -293,17 +295,42 @@ void loop() {
     processInput();
 
     timeElapsedSinceUpdate = micros() - lastUpdateTime;
-    if (panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
+    
+    if ((int) panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
         lastUpdateTime = micros();
-        panState += int(panVelocity);
-        if ((panHalfway < panGoal && panState < panHalfway) || (panHalfway > panGoal && panState > panHalfway)) {
-            panVelocity += ACCELERATION * timeElapsedSinceUpdate / 1000;
+        bool movingRight = panHalfway < panGoal;
+        float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000;
+        if (movingRight) {
+            bool halfwayDone = panState >= (float) panHalfway;
+            if (!halfwayDone) {
+                panVelocity += increment;
+            } else {
+                panVelocity -= increment;
+                if (panVelocity < 0.1) {
+                    panVelocity = 0.1;
+                }
+            }
+            panState += panVelocity;
+            if ((int) panState > panGoal) {
+                panState = (float) panGoal;
+                panVelocity = 0.0;
+            }
         } else {
-            panVelocity -= ACCELERATION * timeElapsedSinceUpdate / 1000;
+            bool halfwayDone = panState <= (float) panHalfway;
+            if (!halfwayDone) {
+                panVelocity += increment;
+            } else {
+                panVelocity -= increment;
+                if (panVelocity < 0.1) {
+                    panVelocity = 0.1;
+                }
+            }
+            panState -= panVelocity;
+            if ((int) panState < panGoal) {
+                panState = (float) panGoal;
+                panVelocity = 0.0;
+            }
         }
-        if ((panHalfway < panGoal && panState > panGoal) || (panHalfway > panGoal && panState < panGoal)) {
-            panState = panGoal;
-        }
-        pan(panGoal);
+        pan((int) panState);
     }
 }
