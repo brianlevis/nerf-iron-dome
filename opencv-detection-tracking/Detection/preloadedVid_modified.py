@@ -4,7 +4,7 @@ import cv2
 ### This works better for my precompiled vid, seems to be bad for streaming ###
 
 body_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-cap = cv2.VideoCapture('test.mov/.avi/.idk') # make input video name to load file, 0 is face cam if you have one
+cap = cv2.VideoCapture("Video_1.MOV")  # make input video name to load file, 0 is face cam if you have one
 
 ret, frame = cap.read()
 tol = 0
