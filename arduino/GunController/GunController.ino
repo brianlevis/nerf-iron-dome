@@ -54,13 +54,13 @@ const int stopAutoFireCode = 0;
 
 // state variables
 float panState       = PAN_MIDPOINT;
-int panGoal          = (int) panState;
-int panHalfway       = (int) panState;
-float panVelocity    = 0.0;
-int tiltGoal         = TILT_MIDPOINT;
-int tiltState        = TILT_MIDPOINT;
-int tiltVelocity     = 0;
-int tiltAcceleration = 0;
+int panGoal          = PAN_MIDPOINT;
+int panHalfway       = PAN_MIDPOINT;
+// float panVelocity    = 0.0;
+float tiltState       = TILT_MIDPOINT;
+int tiltGoal          = TILT_MIDPOINT;
+int tiltHalfway       = TILT_MIDPOINT;
+// float tiltVelocity    = 0.0;
 
 bool velocityMode = false;
 
@@ -118,14 +118,76 @@ void setPanLocation(int argument) {
     panGoal = PAN_MIDPOINT + argument;
 }
 
+
 void setTiltLocation(int argument) {
     // argument: [-300, 500]
     tiltGoal = TILT_MIDPOINT + argument;
 }
 
-void updateState() {
 
+void updateLocation() {
+    timeElapsedSinceUpdate = micros() - lastUpdateTime;
+    if (timeElapsedSinceUpdate > UPDATE_INTERVAL) {
+        lastUpdateTime = micros();
+        if ((int) panState != panGoal) {
+            incrementPanLocation(timeElapsedSinceUpdate);
+        }
+        if ((int) tiltState != tiltGoal) {
+            incrementTiltLocation(timeElapsedSinceUpdate);
+        }
+    }
 }
+
+
+void incrementPanLocation(long delta) {
+    bool movingRight = panHalfway < panGoal;
+    bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
+    float increment = ACCELERATION * delta / 1000000.0;
+    if (!halfwayDone) {
+        panVelocity += increment;
+    } else {
+        panVelocity -= increment;
+        if (panVelocity < 0.1) {
+            panVelocity = 0.1;
+        }
+    }
+    if (movingRight) {
+        panState += panVelocity;
+    } else {
+        panState -= panVelocity;
+    }
+    if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
+        panState = (float) panGoal;
+        panVelocity = 0.0;
+    }
+    pan((int) panState);
+}
+
+
+void incrementTiltLocation(long delta) {
+    bool movingRight = tiltHalfway < tiltGoal;
+    bool halfwayDone = (movingRight && tiltState >= (float) tiltHalfway) || (!movingRight && tiltState <= (float) tiltHalfway);
+    float increment = ACCELERATION * delta / 1000000.0;
+    if (!halfwayDone) {
+        tiltVelocity += increment;
+    } else {
+        tiltVelocity -= increment;
+        if (tiltVelocity < 0.1) {
+            tiltVelocity = 0.1;
+        }
+    }
+    if (movingRight) {
+        tiltState += tiltVelocity;
+    } else {
+        tiltState -= tiltVelocity;
+    }
+    if ((movingRight && (int) tiltState > tiltGoal) || (!movingRight && (int) tiltState < tiltGoal)) {
+        tiltState = (float) tiltGoal;
+        tiltVelocity = 0.0;
+    }
+    tilt((int) tiltState);
+}
+
 
 void pan(int location) {
     if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
@@ -134,6 +196,7 @@ void pan(int location) {
     //     reportError("Pan location out of range!");
     // }
 }
+
 
 void tilt(int location) {
     if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
@@ -295,61 +358,31 @@ void setup() {
 
 void loop() {
     processInput();
-    timeElapsedSinceUpdate = micros() - lastUpdateTime;
-    if ((int) panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
-        lastUpdateTime = micros();
-
-        bool movingRight = panHalfway < panGoal;
-        bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
-        float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000.0;
-        if (!halfwayDone) {
-            panVelocity += increment;
-        } else {
-            panVelocity -= increment;
-            if (panVelocity < 0.1) {
-                panVelocity = 0.1;
-            }
-        }
-        if (movingRight) {
-            panState += panVelocity;
-        } else {
-            panState -= panVelocity;
-        }
-        if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
-            panState = (float) panGoal;
-            panVelocity = 0.0;
-        }
-        // if (movingRight) {
-        //     bool halfwayDone = panState >= (float) panHalfway;
-        //     if (!halfwayDone) {
-        //         panVelocity += increment;
-        //     } else {
-        //         panVelocity -= increment;
-        //         if (panVelocity < 0.1) {
-        //             panVelocity = 0.1;
-        //         }
-        //     }
-        //     panState += panVelocity;
-        //     if ((int) panState > panGoal) {
-        //         panState = (float) panGoal;
-        //         panVelocity = 0.0;
-        //     }
-        // } else {
-        //     bool halfwayDone = panState <= (float) panHalfway;
-        //     if (!halfwayDone) {
-        //         panVelocity += increment;
-        //     } else {
-        //         panVelocity -= increment;
-        //         if (panVelocity < 0.1) {
-        //             panVelocity = 0.1;
-        //         }
-        //     }
-        //     panState -= panVelocity;
-        //     if ((int) panState < panGoal) {
-        //         panState = (float) panGoal;
-        //         panVelocity = 0.0;
-        //     }
-        // }
-        pan((int) panState);
-    }
+    updateLocation();
+    // timeElapsedSinceUpdate = micros() - lastUpdateTime;
+    
+    // if ((int) panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
+    //     lastUpdateTime = micros();
+    //     bool movingRight = panHalfway < panGoal;
+    //     bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
+    //     float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000.0;
+    //     if (!halfwayDone) {
+    //         panVelocity += increment;
+    //     } else {
+    //         panVelocity -= increment;
+    //         if (panVelocity < 0.1) {
+    //             panVelocity = 0.1;
+    //         }
+    //     }
+    //     if (movingRight) {
+    //         panState += panVelocity;
+    //     } else {
+    //         panState -= panVelocity;
+    //     }
+    //     if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
+    //         panState = (float) panGoal;
+    //         panVelocity = 0.0;
+    //     }
+    //     pan((int) panState);
+    // }
 }
