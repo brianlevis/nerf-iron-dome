@@ -297,42 +297,59 @@ void loop() {
     processInput();
     timeElapsedSinceUpdate = micros() - lastUpdateTime;
     if ((int) panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
-        //Serial.print("t:");
-        //Serial.println(timeElapsedSinceUpdate);
         lastUpdateTime = micros();
+
         bool movingRight = panHalfway < panGoal;
+        bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
         float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000.0;
-        if (movingRight) {
-            bool halfwayDone = panState >= (float) panHalfway;
-            if (!halfwayDone) {
-                panVelocity += increment;
-            } else {
-                panVelocity -= increment;
-                if (panVelocity < 0.1) {
-                    panVelocity = 0.1;
-                }
-            }
-            panState += panVelocity;
-            if ((int) panState > panGoal) {
-                panState = (float) panGoal;
-                panVelocity = 0.0;
-            }
+        if (!halfwayDone) {
+            panVelocity += increment;
         } else {
-            bool halfwayDone = panState <= (float) panHalfway;
-            if (!halfwayDone) {
-                panVelocity += increment;
-            } else {
-                panVelocity -= increment;
-                if (panVelocity < 0.1) {
-                    panVelocity = 0.1;
-                }
-            }
-            panState -= panVelocity;
-            if ((int) panState < panGoal) {
-                panState = (float) panGoal;
-                panVelocity = 0.0;
+            panVelocity -= increment;
+            if (panVelocity < 0.1) {
+                panVelocity = 0.1;
             }
         }
+        if (movingRight) {
+            panState += panVelocity;
+        } else {
+            panState -= panVelocity;
+        }
+        if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
+            panState = (float) panGoal;
+            panVelocity = 0.0;
+        }
+        // if (movingRight) {
+        //     bool halfwayDone = panState >= (float) panHalfway;
+        //     if (!halfwayDone) {
+        //         panVelocity += increment;
+        //     } else {
+        //         panVelocity -= increment;
+        //         if (panVelocity < 0.1) {
+        //             panVelocity = 0.1;
+        //         }
+        //     }
+        //     panState += panVelocity;
+        //     if ((int) panState > panGoal) {
+        //         panState = (float) panGoal;
+        //         panVelocity = 0.0;
+        //     }
+        // } else {
+        //     bool halfwayDone = panState <= (float) panHalfway;
+        //     if (!halfwayDone) {
+        //         panVelocity += increment;
+        //     } else {
+        //         panVelocity -= increment;
+        //         if (panVelocity < 0.1) {
+        //             panVelocity = 0.1;
+        //         }
+        //     }
+        //     panState -= panVelocity;
+        //     if ((int) panState < panGoal) {
+        //         panState = (float) panGoal;
+        //         panVelocity = 0.0;
+        //     }
+        // }
         pan((int) panState);
     }
 }
