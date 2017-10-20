@@ -56,11 +56,11 @@ const int stopAutoFireCode = 0;
 float panState       = PAN_MIDPOINT;
 int panGoal          = PAN_MIDPOINT;
 int panHalfway       = PAN_MIDPOINT;
-// float panVelocity    = 0.0;
+float panVelocity    = 0.0;
 float tiltState       = TILT_MIDPOINT;
 int tiltGoal          = TILT_MIDPOINT;
 int tiltHalfway       = TILT_MIDPOINT;
-// float tiltVelocity    = 0.0;
+float tiltVelocity    = 0.0;
 
 bool velocityMode = false;
 
@@ -121,21 +121,26 @@ void setPanLocation(int argument) {
 
 void setTiltLocation(int argument) {
     // argument: [-300, 500]
+    tiltHalfway = (tiltGoal + (TILT_MIDPOINT + argument)) / 2;
     tiltGoal = TILT_MIDPOINT + argument;
 }
 
 
-void updateLocation() {
-    timeElapsedSinceUpdate = micros() - lastUpdateTime;
-    if (timeElapsedSinceUpdate > UPDATE_INTERVAL) {
-        lastUpdateTime = micros();
-        if ((int) panState != panGoal) {
-            incrementPanLocation(timeElapsedSinceUpdate);
-        }
-        if ((int) tiltState != tiltGoal) {
-            incrementTiltLocation(timeElapsedSinceUpdate);
-        }
-    }
+void tilt(int location) {
+    if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
+        tiltServo.writeMicroseconds(location);
+    }// else {
+    //     reportError("Tilt location out of range!");
+    // }
+}
+
+
+void pan(int location) {
+    if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
+        panServo.writeMicroseconds(location);
+    }// else {
+    //     reportError("Pan location out of range!");
+    // }
 }
 
 
@@ -165,8 +170,8 @@ void incrementPanLocation(long delta) {
 
 
 void incrementTiltLocation(long delta) {
-    bool movingRight = tiltHalfway < tiltGoal;
-    bool halfwayDone = (movingRight && tiltState >= (float) tiltHalfway) || (!movingRight && tiltState <= (float) tiltHalfway);
+    bool movingUp = tiltHalfway < tiltGoal;
+    bool halfwayDone = (movingUp && tiltState >= (float) tiltHalfway) || (!movingUp && tiltState <= (float) tiltHalfway);
     float increment = ACCELERATION * delta / 1000000.0;
     if (!halfwayDone) {
         tiltVelocity += increment;
@@ -176,12 +181,12 @@ void incrementTiltLocation(long delta) {
             tiltVelocity = 0.1;
         }
     }
-    if (movingRight) {
+    if (movingUp) {
         tiltState += tiltVelocity;
     } else {
         tiltState -= tiltVelocity;
     }
-    if ((movingRight && (int) tiltState > tiltGoal) || (!movingRight && (int) tiltState < tiltGoal)) {
+    if ((movingUp && (int) tiltState > tiltGoal) || (!movingUp && (int) tiltState < tiltGoal)) {
         tiltState = (float) tiltGoal;
         tiltVelocity = 0.0;
     }
@@ -189,22 +194,21 @@ void incrementTiltLocation(long delta) {
 }
 
 
-void pan(int location) {
-    if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
-        panServo.writeMicroseconds(location);
-    }// else {
-    //     reportError("Pan location out of range!");
-    // }
+
+void updateLocation() {
+    timeElapsedSinceUpdate = micros() - lastUpdateTime;
+    if (timeElapsedSinceUpdate > UPDATE_INTERVAL) {
+        lastUpdateTime = micros();
+        if ((int) panState != panGoal) {
+            incrementPanLocation(timeElapsedSinceUpdate);
+        }
+        if ((int) tiltState != tiltGoal) {
+            incrementTiltLocation(timeElapsedSinceUpdate);
+        }
+    }
 }
 
 
-void tilt(int location) {
-    if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
-        tiltServo.writeMicroseconds(location);
-    }// else {
-    //     reportError("Tilt location out of range!");
-    // }
-}
 
 /*
 ---------------------------------------------------------
