@@ -1,28 +1,28 @@
-#import imutils
+import imutils
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(0)    # currently streaming, jitters a bit, works best mid range
+cap = cv2.VideoCapture("Video_1.MOV")    # currently streaming, jitters a bit, works best mid range
 
 ret, frame = cap.read()
-#frame = cv2.transpose(frame)   #transposed becuase iphone vid
-#frame = imutils.resize(frame, width=500)    # you might have to download imutils yourself via py pip
+frame = cv2.transpose(frame)   #transposed becuase iphone vid
+frame = imutils.resize(frame, width=500)    # you might have to download imutils yourself via py pip
 gray1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 gray1 = cv2.GaussianBlur(gray1, (21, 21), 0)   # blur away random high intesity vals
 
 ret, frame = cap.read()
 delt = gray1                                   # keeps track of frame difference
-sizes = [[0,0,0,0],[0,0,0,0],[0,0,0,0]]        # remember last three motion frames, so error doesnt explode 
+sizes = [[0,0,0,0],[0,0,0,0],[0,0,0,0]]        # remember last three motion frames, so error doesnt explode
 i = 0
-
+xmin = -1
 while(ret):
-	#frame = cv2.transpose(frame)
-	#frame = imutils.resize(frame, width=500)   # change this how you see fit/runs best on your comp
+	frame = cv2.transpose(frame)
+	frame = imutils.resize(frame, width=500)   # change this how you see fit/runs best on your comp
 	gray2 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	gray2 = cv2.GaussianBlur(gray2, (21, 21), 0)
 
 	delt = cv2.absdiff(gray1, gray2)           # taking differnce
-	thresh = cv2.threshold(delt, 10, 255, cv2.THRESH_BINARY)[1]     # set very low intesity pixels to zero 
+	thresh = cv2.threshold(delt, 10, 255, cv2.THRESH_BINARY)[1]     # set very low intesity pixels to zero
 	thresh = cv2.dilate(thresh, None, iterations=10)                # blows up difference we do have for better body encompass
 	(_, cnts, _) = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)   # contour lines, the actual important stuff
 
@@ -57,12 +57,13 @@ while(ret):
 			sizes[i][3] = ymax
 		i = (i+1)%3
 
-	cv2.rectangle(frame, (xmin,ymin), (xmax,ymax),(0,255,0),2)
-	cv2.imshow("Src", frame)
+	if xmin != - 1:
+		cv2.rectangle(frame, (xmin,ymin), (xmax,ymax),(0,255,0),2)
+		cv2.imshow("Src", frame)
 	#cv2.imshow("Thresh", thresh)
 	#cv2.imshow("Frame Delta", delt)
 
-	key = cv2.waitKey(1) & 0xFF
+	key = cv2.waitKey(20) & 0xFF
 	# q to quit
 	if key == ord('q'):
 		break
