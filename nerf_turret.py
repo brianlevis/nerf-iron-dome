@@ -42,6 +42,9 @@ def send_command(command):
     status = ser.read()
     if status == b'\x00':
         status = ser.read()
+    elif status == b't':
+        print(serial.readline())
+        return
     if status == b'x':
         print('ERROR:', serial.readline())
         exit(1)

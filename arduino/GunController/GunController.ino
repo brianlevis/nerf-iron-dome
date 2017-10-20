@@ -19,7 +19,7 @@ Manual input on pin 12
 #define TILT_MIDPOINT   1500
 #define PAN_MIDPOINT    1455
 
-#define ACCELERATION       0.1
+#define ACCELERATION       5
 #define UPDATE_INTERVAL 2000
 
 const int pusherSwitchPin      =  4;
@@ -250,9 +250,11 @@ void processInput() {
                 }
                 break;
             case tiltCode:
+                lastUpdateTime = micros();
                 setTiltLocation((int(byte0) << 8) + int(byte1));
                 break;
             case panCode:
+                lastUpdateTime = micros();
                 setPanLocation((int(byte0) << 8) + int(byte1));
                 break;
             case velocityCode:
@@ -293,13 +295,13 @@ void setup() {
 
 void loop() {
     processInput();
-
     timeElapsedSinceUpdate = micros() - lastUpdateTime;
-    
     if ((int) panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
+        //Serial.print("t:");
+        //Serial.println(timeElapsedSinceUpdate);
         lastUpdateTime = micros();
         bool movingRight = panHalfway < panGoal;
-        float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000;
+        float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000.0;
         if (movingRight) {
             bool halfwayDone = panState >= (float) panHalfway;
             if (!halfwayDone) {
