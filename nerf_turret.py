@@ -3,6 +3,8 @@ from time import time
 
 ser = serial.Serial('/dev/ttyACM0', 9600)
 
+COMMAND_RATE = 1 # millis
+
 waitCode      = 'w'
 errorCode     = 'x'
 invalidCode   = 'i'
@@ -16,17 +18,6 @@ velocityCode  = 'v'
 heartbeatCode = 'h'
 killCode      = 'k'
 
-command_queue = []
-
-def add_to_queue(command):
-    command_queue.insert(0, command)
-
-def process_queue():
-    if len(command_queue) == 0:
-        return
-    command = command_queue.pop()
-    send_command(command)
-
 # x = 0
 # y = 0
 # auto = False
@@ -37,6 +28,7 @@ def process_queue():
 # def tilt(val):
 #     return 1650 + val * 350
 
+last_command_time = time()
 def send_command(command):
     action_code, argument = command
     status = ser.read()
@@ -53,8 +45,35 @@ def send_command(command):
         exit(1)
     argument = int(argument)
     print('sending %s %d'%(action_code, argument))
-    ser.write(bytes([115, ord(action_code), (argument & 0b1111111100000000) >> 8, argument & 0b11111111, 101]))
+    ser.write(bytes([115, ord(action_code), (argument & 0xff00) >> 8, argument & 0xff, 101]))
 
+def pan(position):
+    if -700 > position or position > 700:
+        print("Position %s out of range [-700, 700]", str(position))
+    elif type(position) != int:
+        print("Position must be of type int, not %s", str(type(position)))
+    else:
+        send_command(panCode, position)
+
+def tilt(position):
+    if -300 > position or position > 500:
+        print("Position %s out of range [-300, 500]", str(position))
+    elif type(position) != int:
+        print("Position must be of type int, not %s", str(type(position)))
+    else:
+        send_command(tiltCode, position)
+
+def velocity(pan, tilt):
+    if -128 > pan or pan > 127:
+        print("Pan velocity %s out of range [-127, 128]", str(pan))
+    elif type(pan) != int:
+        print("Pan velocity must be of type int, not %s", str(type(pan)))
+    if -128 > tilt or tilt > 127:
+        print("Tilt velocity %s out of range [-127, 128]", str(tilt))
+    elif type(tilt) != int:
+        print("Tilt velocity must be of type int, not %s", str(type(tilt)))
+    else:
+        send_command(velocityCode, ((0xff & pan) << 8) + (0xff & tilt))
 
 # time0 = time()
 # time1 = time()

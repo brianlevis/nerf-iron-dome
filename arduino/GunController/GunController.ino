@@ -144,22 +144,30 @@ void pan(int location) {
 }
 
 
+/*
+    Approximates velocity based on delta since last update, and
+    updates pan state by velocity * delta.
+*/
 void incrementPanLocation(long delta) {
     bool movingRight = panHalfway < panGoal;
     bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
     float increment = ACCELERATION * delta / 1000000.0;
-    if (!halfwayDone) {
-        panVelocity += increment;
+    if (velocityMode) {
+        panState += panVelocity * delta;
     } else {
-        panVelocity -= increment;
-        if (panVelocity < 0.1) {
-            panVelocity = 0.1;
+        if (!halfwayDone) {
+            panVelocity += increment;
+        } else {
+            panVelocity -= increment;
+            if (panVelocity < 0.1) {
+                panVelocity = 0.1;
+            }
         }
-    }
-    if (movingRight) {
-        panState += panVelocity;
-    } else {
-        panState -= panVelocity;
+        if (movingRight) {
+            panState += panVelocity;
+        } else {
+            panState -= panVelocity;
+        }
     }
     if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
         panState = (float) panGoal;
@@ -173,18 +181,22 @@ void incrementTiltLocation(long delta) {
     bool movingUp = tiltHalfway < tiltGoal;
     bool halfwayDone = (movingUp && tiltState >= (float) tiltHalfway) || (!movingUp && tiltState <= (float) tiltHalfway);
     float increment = ACCELERATION * delta / 1000000.0;
-    if (!halfwayDone) {
-        tiltVelocity += increment;
+    if (velocityMode) {
+        tiltState += tiltVelocity * delta;
     } else {
-        tiltVelocity -= increment;
-        if (tiltVelocity < 0.1) {
-            tiltVelocity = 0.1;
+        if (!halfwayDone) {
+            tiltVelocity += increment;
+        } else {
+            tiltVelocity -= increment;
+            if (tiltVelocity < 0.1) {
+                tiltVelocity = 0.1;
+            }
         }
-    }
-    if (movingUp) {
-        tiltState += tiltVelocity;
-    } else {
-        tiltState -= tiltVelocity;
+        if (movingUp) {
+            tiltState += tiltVelocity;
+        } else {
+            tiltState -= tiltVelocity;
+        }
     }
     if ((movingUp && (int) tiltState > tiltGoal) || (!movingUp && (int) tiltState < tiltGoal)) {
         tiltState = (float) tiltGoal;
@@ -192,7 +204,6 @@ void incrementTiltLocation(long delta) {
     }
     tilt((int) tiltState);
 }
-
 
 
 void updateLocation() {
@@ -317,17 +328,32 @@ void processInput() {
                 }
                 break;
             case tiltCode:
+                velocityMode = false;
                 lastUpdateTime = micros();
                 setTiltLocation((int(byte0) << 8) + int(byte1));
                 break;
             case panCode:
+                velocityMode = false;
                 lastUpdateTime = micros();
                 setPanLocation((int(byte0) << 8) + int(byte1));
                 break;
             case velocityCode:
-                // [-128, 127]
-//                int8_t panVelocity = byte0;
-//                int8_t tiltVelocity = byte1;
+                velocityMode = true;
+                lastUpdateTime = micros();
+                panVelocity = (float) byte0;
+                tiltVelocity = (float) byte1;
+                panVelocity /= 10;
+                tiltVelocity /= 10;
+                if (panVelocity < -0.0001) {
+                    setPanLocation(MAX_PAN_LEFT);
+                } else if (panVelocity > 0.0001) {
+                    setPanLocation(MAX_PAN_RIGHT);
+                }
+                if (tiltVelocity < -0.0001) {
+                    setTiltLocation(MAX_TILT_LEFT);
+                } else if (tiltVelocity > 0.0001) {
+                    setTiltLocation(MAX_TILT_RIGHT);
+                }
                 break;
             case heartbeatCode:
                 break;
