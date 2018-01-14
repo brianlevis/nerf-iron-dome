@@ -29,11 +29,7 @@ killCode      = 'k'
 #     return 1650 + val * 350
 
 last_command_time = time()
-def send_command(action_code, arg0, arg1=None):
-    if arg1 is None:
-        argument = arg0
-    else:
-        argument = ((arg0 & 0xff) << 8) + arg1 & 0xff
+def send_command(action_code, argument):
 
     global last_command_time
     while time() - last_command_time < COMMAND_RATE:
@@ -42,7 +38,7 @@ def send_command(action_code, arg0, arg1=None):
     status = ser.read()
     if status == b'\x00':
         status = ser.read()
-    elif status == b'd':
+    elif status == b't':
         print(serial.readline())
         return
     if status == b'x':
@@ -55,9 +51,14 @@ def send_command(action_code, arg0, arg1=None):
     print('sending %s %d'%(action_code, argument))
     ser.write(bytes([115, ord(action_code), (argument & 0xff00) >> 8, argument & 0xff, 101]))
 
+def send_v(pan_velocity, tilt_velocity):
+    pan_velocity, tilt_velocity = pan_velocity & 0xff, tilt_velocity & 0xff # truncate to byte size
+    arg = (pan_velocity << 8) + tilt_velocity
+    send_command('v', arg)
+
 def printy():
     while True:
-        print(serial.readline())
+        print(ser.readline())
 
 def pan(position):
     if -700 > position or position > 700:

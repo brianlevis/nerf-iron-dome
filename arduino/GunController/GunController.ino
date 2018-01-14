@@ -147,8 +147,9 @@ void pan(int location) {
 void incrementPanLocation(long delta) {
     bool movingRight = panHalfway < panGoal;
     bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
+    float scaled_delta = delta / 1000000.0;
     if (velocityMode) {
-        panState += panVelocity * delta;
+        panState += panVelocity * delta / 1000000.0;
     } else {
         float increment = ACCELERATION * delta / 1000000.0;
         if (!halfwayDone) {
@@ -160,9 +161,9 @@ void incrementPanLocation(long delta) {
             }
         }
         if (movingRight) {
-            panState += panVelocity;
+            panState += panVelocity * scaled_delta;
         } else {
-            panState -= panVelocity;
+            panState -= panVelocity * scaled_delta;
         }
     }
     // If panState has elapsed panGoal, then set to panGoal
@@ -179,7 +180,7 @@ void incrementTiltLocation(long delta) {
     bool halfwayDone = (movingUp && tiltState >= (float) tiltHalfway) || (!movingUp && tiltState <= (float) tiltHalfway);
     float increment = ACCELERATION * delta / 1000000.0;
     if (velocityMode) {
-        tiltState += tiltVelocity * delta;
+        tiltState += tiltVelocity * delta / 1000000.0;
     } else {
         if (!halfwayDone) {
             tiltVelocity += increment;
@@ -190,9 +191,9 @@ void incrementTiltLocation(long delta) {
             }
         }
         if (movingUp) {
-            tiltState += tiltVelocity;
+            tiltState += tiltVelocity * delta / 1000000.0;
         } else {
-            tiltState -= tiltVelocity;
+            tiltState -= tiltVelocity * delta / 1000000.0;
         }
     }
     if ((movingUp && (int) tiltState > tiltGoal) || (!movingUp && (int) tiltState < tiltGoal)) {
@@ -213,12 +214,12 @@ void updateLocation() {
         if ((int) tiltState != tiltGoal) {
             incrementTiltLocation(timeElapsedSinceUpdate);
         }
-    }
     Serial.write('d');
     Serial.print("panState:");
     Serial.print(panState);
     Serial.print("tiltState:");
     Serial.println(tiltState);
+    }
 }
 
 
@@ -342,15 +343,13 @@ void processInput() {
             case velocityCode:
                 velocityMode = true;
                 lastUpdateTime = micros();
-                panVelocity = byte0 - 127.0;
-                tiltVelocity = byte1 - 127.0;
-                Serial.write('d');
-                Serial.print("panVelocity:");
-                Serial.print(panVelocity);
-                Serial.print("tiltVelocity:");
-                Serial.println(tiltVelocity);
-                panVelocity /= 10;
-                tiltVelocity /= 10;
+                panVelocity = (int8_t) byte0;
+                tiltVelocity = (int8_t) byte1;
+                //Serial.write('d');
+                //Serial.print("panVelocity:");
+                //Serial.print(panVelocity);
+                //Serial.print("tiltVelocity:");
+                //Serial.println(tiltVelocity);
                 if (panVelocity < -0.0001) {
                     setPanLocation(MAX_PAN_LEFT);
                 } else if (panVelocity > 0.0001) {
