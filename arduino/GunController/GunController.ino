@@ -129,18 +129,14 @@ void setTiltLocation(int argument) {
 void tilt(int location) {
     if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
         tiltServo.writeMicroseconds(location);
-    }// else {
-    //     reportError("Tilt location out of range!");
-    // }
+    }
 }
 
 
 void pan(int location) {
     if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
         panServo.writeMicroseconds(location);
-    }// else {
-    //     reportError("Pan location out of range!");
-    // }
+    }
 }
 
 
@@ -160,7 +156,7 @@ void incrementPanLocation(long delta) {
         } else {
             panVelocity -= increment;
             if (panVelocity < 0.1) {
-                panVelocity = 0.1;
+                panVelocity = 0.1; 
             }
         }
         if (movingRight) {
@@ -330,18 +326,18 @@ void processInput() {
             case tiltCode:
                 velocityMode = false;
                 lastUpdateTime = micros();
-                setTiltLocation((int(byte0) << 8) + int(byte1));
+                setTiltLocation((byte0 << 8) + byte1);
                 break;
             case panCode:
                 velocityMode = false;
                 lastUpdateTime = micros();
-                setPanLocation((int(byte0) << 8) + int(byte1));
+                setPanLocation((byte0 << 8) + byte1);
                 break;
             case velocityCode:
                 velocityMode = true;
                 lastUpdateTime = micros();
-                panVelocity = (float) byte0;
-                tiltVelocity = (float) byte1;
+                panVelocity = byte0 - 127.0;
+                tiltVelocity = byte1 - 127.0;
                 panVelocity /= 10;
                 tiltVelocity /= 10;
                 if (panVelocity < -0.0001) {
@@ -350,9 +346,9 @@ void processInput() {
                     setPanLocation(MAX_PAN_RIGHT);
                 }
                 if (tiltVelocity < -0.0001) {
-                    setTiltLocation(MAX_TILT_LEFT);
+                    setTiltLocation(MAX_TILT_DOWN);
                 } else if (tiltVelocity > 0.0001) {
-                    setTiltLocation(MAX_TILT_RIGHT);
+                    setTiltLocation(MAX_TILT_UP);
                 }
                 break;
             case heartbeatCode:
@@ -382,37 +378,10 @@ void setup() {
     tilt(TILT_MIDPOINT);
     revDown();
     resetPusher();
-    //Serial.flush();
     requestInput();
 }
 
 void loop() {
     processInput();
     updateLocation();
-    // timeElapsedSinceUpdate = micros() - lastUpdateTime;
-    
-    // if ((int) panState != panGoal && timeElapsedSinceUpdate > UPDATE_INTERVAL) {
-    //     lastUpdateTime = micros();
-    //     bool movingRight = panHalfway < panGoal;
-    //     bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
-    //     float increment = ACCELERATION * timeElapsedSinceUpdate / 1000000.0;
-    //     if (!halfwayDone) {
-    //         panVelocity += increment;
-    //     } else {
-    //         panVelocity -= increment;
-    //         if (panVelocity < 0.1) {
-    //             panVelocity = 0.1;
-    //         }
-    //     }
-    //     if (movingRight) {
-    //         panState += panVelocity;
-    //     } else {
-    //         panState -= panVelocity;
-    //     }
-    //     if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
-    //         panState = (float) panGoal;
-    //         panVelocity = 0.0;
-    //     }
-    //     pan((int) panState);
-    // }
 }

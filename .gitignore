@@ -28,3 +28,6 @@ pip-log.txt
 venv
 *.pyc
 build
+.vscode/c_cpp_properties.json
+.vscode/arduino.json
+.vscode/arduino.json
