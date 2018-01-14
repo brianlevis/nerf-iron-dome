@@ -19,7 +19,7 @@ Manual input on pin 12
 #define TILT_MIDPOINT   1500
 #define PAN_MIDPOINT    1455
 
-#define ACCELERATION      20
+#define ACCELERATION       5
 #define UPDATE_INTERVAL 2000
 
 const int pusherSwitchPin      =  4;

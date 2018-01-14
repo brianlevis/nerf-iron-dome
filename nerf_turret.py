@@ -29,7 +29,12 @@ killCode      = 'k'
 #     return 1650 + val * 350
 
 last_command_time = time()
-def send_command(action_code, argument):
+def send_command(action_code, arg0, arg1=None):
+    if arg1 is None:
+        argument = arg0
+    else:
+        argument = ((arg0 & 0xff) << 8) + arg1 & 0xff
+
     global last_command_time
     while time() - last_command_time < COMMAND_RATE:
         pass
