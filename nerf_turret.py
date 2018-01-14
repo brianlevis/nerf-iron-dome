@@ -3,7 +3,7 @@ from time import time
 
 ser = serial.Serial('/dev/ttyACM0', 9600)
 
-COMMAND_RATE = 1 # millis
+COMMAND_RATE = 0.005
 
 waitCode      = 'w'
 errorCode     = 'x'
@@ -29,8 +29,11 @@ killCode      = 'k'
 #     return 1650 + val * 350
 
 last_command_time = time()
-def send_command(command):
-    action_code, argument = command
+def send_command(action_code, argument):
+    global last_command_time
+    while time() - last_command_time < COMMAND_RATE:
+        pass
+    last_command_time = time()
     status = ser.read()
     if status == b'\x00':
         status = ser.read()
