@@ -19,7 +19,7 @@ Manual input on pin 12
 #define TILT_MIDPOINT   1500
 #define PAN_MIDPOINT    1455
 
-#define ACCELERATION       5
+#define ACCELERATION      20
 #define UPDATE_INTERVAL 2000
 
 const int pusherSwitchPin      =  4;
@@ -114,14 +114,14 @@ void resetPusher() {
 
 void setPanLocation(int argument) {
     // argument: [-700, 700]
-    panHalfway = (panGoal + (PAN_MIDPOINT + argument)) / 2;
+    panHalfway = (panState + (PAN_MIDPOINT + argument)) / 2;
     panGoal = PAN_MIDPOINT + argument;
 }
 
 
 void setTiltLocation(int argument) {
     // argument: [-300, 500]
-    tiltHalfway = (tiltGoal + (TILT_MIDPOINT + argument)) / 2;
+    tiltHalfway = (tiltState + (TILT_MIDPOINT + argument)) / 2;
     tiltGoal = TILT_MIDPOINT + argument;
 }
 
@@ -147,10 +147,10 @@ void pan(int location) {
 void incrementPanLocation(long delta) {
     bool movingRight = panHalfway < panGoal;
     bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
-    float increment = ACCELERATION * delta / 1000000.0;
     if (velocityMode) {
         panState += panVelocity * delta;
     } else {
+        float increment = ACCELERATION * delta / 1000000.0;
         if (!halfwayDone) {
             panVelocity += increment;
         } else {
