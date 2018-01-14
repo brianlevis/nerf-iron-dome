@@ -165,6 +165,7 @@ void incrementPanLocation(long delta) {
             panState -= panVelocity;
         }
     }
+    // If panState has elapsed panGoal, then set to panGoal
     if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
         panState = (float) panGoal;
         panVelocity = 0.0;
@@ -213,6 +214,11 @@ void updateLocation() {
             incrementTiltLocation(timeElapsedSinceUpdate);
         }
     }
+    Serial.write('d');
+    Serial.print("panState:");
+    Serial.print(panState);
+    Serial.print("tiltState:");
+    Serial.println(tiltState);
 }
 
 
@@ -338,6 +344,11 @@ void processInput() {
                 lastUpdateTime = micros();
                 panVelocity = byte0 - 127.0;
                 tiltVelocity = byte1 - 127.0;
+                Serial.write('d');
+                Serial.print("panVelocity:");
+                Serial.print(panVelocity);
+                Serial.print("tiltVelocity:");
+                Serial.println(tiltVelocity);
                 panVelocity /= 10;
                 tiltVelocity /= 10;
                 if (panVelocity < -0.0001) {

@@ -42,7 +42,7 @@ def send_command(action_code, arg0, arg1=None):
     status = ser.read()
     if status == b'\x00':
         status = ser.read()
-    elif status == b't':
+    elif status == b'd':
         print(serial.readline())
         return
     if status == b'x':
@@ -54,6 +54,10 @@ def send_command(action_code, arg0, arg1=None):
     argument = int(argument)
     print('sending %s %d'%(action_code, argument))
     ser.write(bytes([115, ord(action_code), (argument & 0xff00) >> 8, argument & 0xff, 101]))
+
+def printy():
+    while True:
+        print(serial.readline())
 
 def pan(position):
     if -700 > position or position > 700:
