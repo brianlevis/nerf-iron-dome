@@ -19,12 +19,12 @@ Manual input on pin 12
 #define TILT_MIDPOINT   1500
 #define PAN_MIDPOINT    1455
 
-#define ACCELERATION       5
+#define ACCELERATION     800
 #define UPDATE_INTERVAL 2000
 
-const int pusherSwitchPin      =  4;
-const int accelerationMotorPin =  7;
-const int pusherMotorPin       =  8;
+const int pusherSwitchPin      =  3;
+const int accelerationMotorPin =  6;
+const int pusherMotorPin       =  7;
 const int tiltServoPin         = 10;
 const int panServoPin          = 11;
 const int buttonPin            = 12;
@@ -149,9 +149,9 @@ void incrementPanLocation(long delta) {
     bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
     float scaled_delta = delta / 1000000.0;
     if (velocityMode) {
-        panState += panVelocity * delta / 1000000.0;
+        panState += panVelocity * scaled_delta;
     } else {
-        float increment = ACCELERATION * delta / 1000000.0;
+        float increment = ACCELERATION * scaled_delta;
         if (!halfwayDone) {
             panVelocity += increment;
         } else {
@@ -178,10 +178,11 @@ void incrementPanLocation(long delta) {
 void incrementTiltLocation(long delta) {
     bool movingUp = tiltHalfway < tiltGoal;
     bool halfwayDone = (movingUp && tiltState >= (float) tiltHalfway) || (!movingUp && tiltState <= (float) tiltHalfway);
-    float increment = ACCELERATION * delta / 1000000.0;
+    float scaled_delta = delta / 1000000.0;
     if (velocityMode) {
-        tiltState += tiltVelocity * delta / 1000000.0;
+        tiltState += tiltVelocity * scaled_delta;
     } else {
+        float increment = ACCELERATION * scaled_delta;
         if (!halfwayDone) {
             tiltVelocity += increment;
         } else {
@@ -191,9 +192,9 @@ void incrementTiltLocation(long delta) {
             }
         }
         if (movingUp) {
-            tiltState += tiltVelocity * delta / 1000000.0;
+            tiltState += tiltVelocity * scaled_delta;
         } else {
-            tiltState -= tiltVelocity * delta / 1000000.0;
+            tiltState -= tiltVelocity * scaled_delta;
         }
     }
     if ((movingUp && (int) tiltState > tiltGoal) || (!movingUp && (int) tiltState < tiltGoal)) {
@@ -214,11 +215,11 @@ void updateLocation() {
         if ((int) tiltState != tiltGoal) {
             incrementTiltLocation(timeElapsedSinceUpdate);
         }
-    Serial.write('d');
-    Serial.print("panState:");
-    Serial.print(panState);
-    Serial.print("tiltState:");
-    Serial.println(tiltState);
+    //Serial.write('d');
+    //Serial.print("panState:");
+    //Serial.print(panState);
+    //Serial.print("tiltState:");
+    //Serial.println(tiltState);
     }
 }
 

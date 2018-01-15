@@ -38,10 +38,13 @@ def send_command(action_code, argument):
     status = ser.read()
     if status == b'\x00':
         status = ser.read()
-    elif status == b't':
+        print(status)
+        status = ser.read()
+        print(status)
+    if status == b't':
         print(serial.readline())
         return
-    if status == b'x':
+    elif status == b'x':
         print('ERROR:', serial.readline())
         exit(1)
     elif status != b'w':
