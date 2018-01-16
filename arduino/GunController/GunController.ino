@@ -107,6 +107,13 @@ void resetPusher() {
     while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
 }
 
+void flash() {
+    delay(2);
+    digitalWrite(ledPin, HIGH);
+    delay(20);
+    digitalWrite(ledPin, LOW);
+}
+
 /*
 ---------------------------------------------------------
                         Movement
@@ -167,7 +174,7 @@ void incrementPanLocation(long delta) {
         }
     }
     // If panState has elapsed panGoal, then set to panGoal
-    if ((movingRight && (int) panState > panGoal) || (!movingRight && (int) panState < panGoal)) {
+    if ((movingRight && (int) panState >= panGoal) || (!movingRight && (int) panState <= panGoal)) {
         panState = (float) panGoal;
         panVelocity = 0.0;
     }
@@ -197,7 +204,7 @@ void incrementTiltLocation(long delta) {
             tiltState -= tiltVelocity * scaled_delta;
         }
     }
-    if ((movingUp && (int) tiltState > tiltGoal) || (!movingUp && (int) tiltState < tiltGoal)) {
+    if ((movingUp && (int) tiltState >= tiltGoal) || (!movingUp && (int) tiltState <= tiltGoal)) {
         tiltState = (float) tiltGoal;
         tiltVelocity = 0.0;
     }
@@ -211,6 +218,7 @@ void updateLocation() {
         lastUpdateTime = micros();
         if ((int) panState != panGoal) {
             incrementPanLocation(timeElapsedSinceUpdate);
+            flash();
         }
         if ((int) tiltState != tiltGoal) {
             incrementTiltLocation(timeElapsedSinceUpdate);
@@ -344,8 +352,8 @@ void processInput() {
             case velocityCode:
                 velocityMode = true;
                 lastUpdateTime = micros();
-                panVelocity = (int8_t) byte0;
-                tiltVelocity = (int8_t) byte1;
+                panVelocity = (int8_t) byte0 * 2;
+                tiltVelocity = (int8_t) byte1 * 2;
                 //Serial.write('d');
                 //Serial.print("panVelocity:");
                 //Serial.print(panVelocity);
