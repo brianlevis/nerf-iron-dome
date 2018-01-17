@@ -21,7 +21,7 @@ Manual input on pin 12
 
 #define ACCELERATION        1000
 #define VELOCITY_MULTIPLIER    8
-#define UPDATE_INTERVAL      500
+#define UPDATE_INTERVAL     2000
 
 const int pusherSwitchPin      =  3;
 const int accelerationMotorPin =  6;
