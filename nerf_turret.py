@@ -37,10 +37,7 @@ def send_command(action_code, argument):
     last_command_time = time()
     status = ser.read()
     if status == b'\x00':
-        status = ser.read()
-        print(status)
-        status = ser.read()
-        print(status)
+        exit()
     if status == b't':
         print(serial.readline())
         return
