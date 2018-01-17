@@ -10,17 +10,18 @@ Manual input on pin 12
 
 #include <Servo.h>
 
-#define REV_UP_TIME      300
-#define MAX_FIRE_TIME   1000
-#define MAX_TILT_UP     2000
-#define MAX_TILT_DOWN   1300
-#define MAX_PAN_LEFT     800
-#define MAX_PAN_RIGHT   2200
-#define TILT_MIDPOINT   1500
-#define PAN_MIDPOINT    1455
+#define REV_UP_TIME          300
+#define MAX_FIRE_TIME       1000
+#define MAX_TILT_UP         2000
+#define MAX_TILT_DOWN       1300
+#define MAX_PAN_LEFT         800
+#define MAX_PAN_RIGHT       2200
+#define TILT_MIDPOINT       1500
+#define PAN_MIDPOINT        1455
 
-#define ACCELERATION     800
-#define UPDATE_INTERVAL 2000
+#define ACCELERATION        1000
+#define VELOCITY_MULTIPLIER    7
+#define UPDATE_INTERVAL     2000
 
 const int pusherSwitchPin      =  3;
 const int accelerationMotorPin =  6;
@@ -50,17 +51,17 @@ char validInputs[commandInputCount] = {
 };
 
 const int startAutoFireCode = 65535;
-const int stopAutoFireCode = 0;
+const int stopAutoFireCode  = 0;
 
 // state variables
 float panState       = PAN_MIDPOINT;
-int panGoal          = PAN_MIDPOINT;
-int panHalfway       = PAN_MIDPOINT;
+float panGoal        = PAN_MIDPOINT;
+float panHalfway     = PAN_MIDPOINT;
 float panVelocity    = 0.0;
-float tiltState       = TILT_MIDPOINT;
-int tiltGoal          = TILT_MIDPOINT;
-int tiltHalfway       = TILT_MIDPOINT;
-float tiltVelocity    = 0.0;
+float tiltState      = TILT_MIDPOINT;
+float tiltGoal       = TILT_MIDPOINT;
+float tiltHalfway    = TILT_MIDPOINT;
+float tiltVelocity   = 0.0;
 
 bool velocityMode = false;
 
@@ -143,6 +144,24 @@ void tilt(int location) {
 void pan(int location) {
     if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
         panServo.writeMicroseconds(location);
+    } else {
+        Serial.print("(int) panState: ");
+        Serial.println(location);
+        Serial.print("panState: ");
+        Serial.println(panState);
+        Serial.print("panGoal: ");
+        Serial.println(panGoal);
+        Serial.print("panHalfway: ");
+        Serial.print(panHalfway);
+        flash();
+        delay(500);
+        flash();
+        delay(500);
+        flash();
+        delay(500);
+        flash();
+        delay(500);
+        flash();
     }
 }
 
@@ -153,7 +172,7 @@ void pan(int location) {
 */
 void incrementPanLocation(long delta) {
     bool movingRight = panHalfway < panGoal;
-    bool halfwayDone = (movingRight && panState >= (float) panHalfway) || (!movingRight && panState <= (float) panHalfway);
+    bool halfwayDone = (movingRight && panState >= panHalfway) || (!movingRight && panState <= panHalfway);
     float scaled_delta = delta / 1000000.0;
     if (velocityMode) {
         panState += panVelocity * scaled_delta;
@@ -174,8 +193,8 @@ void incrementPanLocation(long delta) {
         }
     }
     // If panState has elapsed panGoal, then set to panGoal
-    if ((movingRight && (int) panState >= panGoal) || (!movingRight && (int) panState <= panGoal)) {
-        panState = (float) panGoal;
+    if ((movingRight && panState >= panGoal) || (!movingRight && panState <= panGoal)) {
+        panState = panGoal;
         panVelocity = 0.0;
     }
     pan((int) panState);
@@ -184,7 +203,7 @@ void incrementPanLocation(long delta) {
 
 void incrementTiltLocation(long delta) {
     bool movingUp = tiltHalfway < tiltGoal;
-    bool halfwayDone = (movingUp && tiltState >= (float) tiltHalfway) || (!movingUp && tiltState <= (float) tiltHalfway);
+    bool halfwayDone = (movingUp && tiltState >= tiltHalfway) || (!movingUp && tiltState <= tiltHalfway);
     float scaled_delta = delta / 1000000.0;
     if (velocityMode) {
         tiltState += tiltVelocity * scaled_delta;
@@ -204,8 +223,8 @@ void incrementTiltLocation(long delta) {
             tiltState -= tiltVelocity * scaled_delta;
         }
     }
-    if ((movingUp && (int) tiltState >= tiltGoal) || (!movingUp && (int) tiltState <= tiltGoal)) {
-        tiltState = (float) tiltGoal;
+    if ((movingUp && tiltState >= tiltGoal) || (!movingUp && tiltState <= tiltGoal)) {
+        tiltState = tiltGoal;
         tiltVelocity = 0.0;
     }
     tilt((int) tiltState);
@@ -216,18 +235,13 @@ void updateLocation() {
     timeElapsedSinceUpdate = micros() - lastUpdateTime;
     if (timeElapsedSinceUpdate > UPDATE_INTERVAL) {
         lastUpdateTime = micros();
-        if ((int) panState != panGoal) {
+        if (panState != panGoal) {
             incrementPanLocation(timeElapsedSinceUpdate);
             flash();
         }
-        if ((int) tiltState != tiltGoal) {
+        if (tiltState != tiltGoal) {
             incrementTiltLocation(timeElapsedSinceUpdate);
         }
-    //Serial.write('d');
-    //Serial.print("panState:");
-    //Serial.print(panState);
-    //Serial.print("tiltState:");
-    //Serial.println(tiltState);
     }
 }
 
@@ -352,22 +366,17 @@ void processInput() {
             case velocityCode:
                 velocityMode = true;
                 lastUpdateTime = micros();
-                panVelocity = (int8_t) byte0 * 2;
-                tiltVelocity = (int8_t) byte1 * 2;
-                //Serial.write('d');
-                //Serial.print("panVelocity:");
-                //Serial.print(panVelocity);
-                //Serial.print("tiltVelocity:");
-                //Serial.println(tiltVelocity);
+                panVelocity = (int8_t) byte0 * VELOCITY_MULTIPLIER;
+                tiltVelocity = (int8_t) byte1 * VELOCITY_MULTIPLIER;
                 if (panVelocity < -0.0001) {
-                    setPanLocation(MAX_PAN_LEFT);
+                    setPanLocation(MAX_PAN_LEFT - PAN_MIDPOINT);
                 } else if (panVelocity > 0.0001) {
-                    setPanLocation(MAX_PAN_RIGHT);
+                    setPanLocation(MAX_PAN_RIGHT - PAN_MIDPOINT);
                 }
                 if (tiltVelocity < -0.0001) {
-                    setTiltLocation(MAX_TILT_DOWN);
+                    setTiltLocation(MAX_TILT_DOWN - TILT_MIDPOINT);
                 } else if (tiltVelocity > 0.0001) {
-                    setTiltLocation(MAX_TILT_UP);
+                    setTiltLocation(MAX_TILT_UP - TILT_MIDPOINT);
                 }
                 break;
             case heartbeatCode:
