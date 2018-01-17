@@ -23,6 +23,9 @@ Manual input on pin 12
 #define VELOCITY_MULTIPLIER    7
 #define UPDATE_INTERVAL     2000
 
+#define REV_UP_PERIOD        200
+#define MAX_REV_DOWN_PERIOD  400
+
 const int pusherSwitchPin      =  3;
 const int accelerationMotorPin =  6;
 const int pusherMotorPin       =  7;
@@ -62,10 +65,13 @@ float tiltState      = TILT_MIDPOINT;
 float tiltGoal       = TILT_MIDPOINT;
 float tiltHalfway    = TILT_MIDPOINT;
 float tiltVelocity   = 0.0;
-
 bool velocityMode = false;
 
-long lastUpdateTime = micros();
+int revSpeed = 0;
+bool revving = false;
+long lastRevUpdateTime = millis();
+
+long lastLocationUpdateTime = micros();
 
 long timeElapsedSinceUpdate;
 int serialAction;
@@ -232,12 +238,11 @@ void incrementTiltLocation(long delta) {
 
 
 void updateLocation() {
-    timeElapsedSinceUpdate = micros() - lastUpdateTime;
+    timeElapsedSinceUpdate = micros() - lastLocationUpdateTime;
     if (timeElapsedSinceUpdate > UPDATE_INTERVAL) {
-        lastUpdateTime = micros();
+        lastLocationUpdateTime = micros();
         if (panState != panGoal) {
             incrementPanLocation(timeElapsedSinceUpdate);
-            flash();
         }
         if (tiltState != tiltGoal) {
             incrementTiltLocation(timeElapsedSinceUpdate);
@@ -245,7 +250,16 @@ void updateLocation() {
     }
 }
 
-
+// Power flywheels for 0.2 seconds, power down for between 0 to 0.4 seconds
+void updateFlywheels() {
+    if (revSpeed == 0 || revSpeed == 255) return;
+    int timeSinceLastRevUpdate = millis() - lastRevUpdateTime;
+    if (revving && timeSinceLastRevUpdate > REV_UP_PERIOD) {
+        revDown();
+    } else if (!revving && timeSinceLastRevUpdate > MAX_REV_DOWN_PERIOD * revSpeed / 255.0) {
+        revUp();
+    }
+}
 
 /*
 ---------------------------------------------------------
@@ -342,8 +356,10 @@ void processInput() {
             case revCode:
                 {
                     // [0, 255]
-                    uint8_t speed = byte0;
-                    uint8_t timeout = byte1;
+                    revSpeed = byte0;
+                    // uint8_t timeout = byte1;
+                    if (revSpeed == 0) revDown();
+                    else if (revSpeed == 255) revUp();
                 }
                 break;
             case fireCode:
@@ -355,17 +371,17 @@ void processInput() {
                 break;
             case tiltCode:
                 velocityMode = false;
-                lastUpdateTime = micros();
+                 = micros();
                 setTiltLocation((byte0 << 8) + byte1);
                 break;
             case panCode:
                 velocityMode = false;
-                lastUpdateTime = micros();
+                 = micros();
                 setPanLocation((byte0 << 8) + byte1);
                 break;
             case velocityCode:
                 velocityMode = true;
-                lastUpdateTime = micros();
+                 = micros();
                 panVelocity = (int8_t) byte0 * VELOCITY_MULTIPLIER;
                 tiltVelocity = (int8_t) byte1 * VELOCITY_MULTIPLIER;
                 if (panVelocity < -0.0001) {
@@ -411,5 +427,9 @@ void setup() {
 
 void loop() {
     processInput();
+
+    
+
     updateLocation();
+    updateFlywheels();
 }
