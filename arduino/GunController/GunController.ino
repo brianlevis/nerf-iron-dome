@@ -23,8 +23,8 @@ Manual input on pin 12
 #define VELOCITY_MULTIPLIER    7
 #define UPDATE_INTERVAL     2000
 
-#define REV_UP_PERIOD        200
-#define MAX_REV_DOWN_PERIOD  400
+#define REV_UP_PERIOD         20
+#define MAX_REV_DOWN_PERIOD   80
 
 const int pusherSwitchPin      =  3;
 const int accelerationMotorPin =  6;
@@ -256,8 +256,12 @@ void updateFlywheels() {
     int timeSinceLastRevUpdate = millis() - lastRevUpdateTime;
     if (revving && timeSinceLastRevUpdate > REV_UP_PERIOD) {
         revDown();
-    } else if (!revving && timeSinceLastRevUpdate > MAX_REV_DOWN_PERIOD * revSpeed / 255.0) {
+        revving = false;
+        lastRevUpdateTime = millis();
+    } else if (!revving && timeSinceLastRevUpdate > MAX_REV_DOWN_PERIOD * (1 - revSpeed / 255.0)) {
         revUp();
+        revving = true;
+        lastRevUpdateTime = millis();
     }
 }
 
@@ -354,13 +358,11 @@ void processInput() {
 
         switch (operationCode) {
             case revCode:
-                {
-                    // [0, 255]
-                    revSpeed = byte0;
-                    // uint8_t timeout = byte1;
-                    if (revSpeed == 0) revDown();
-                    else if (revSpeed == 255) revUp();
-                }
+                // [0, 255]
+                revSpeed = byte0;
+                // uint8_t timeout = byte1;
+                if (revSpeed == 0) revDown();
+                else if (revSpeed == 255) revUp();
                 break;
             case fireCode:
                 {
@@ -371,17 +373,17 @@ void processInput() {
                 break;
             case tiltCode:
                 velocityMode = false;
-                 = micros();
+                lastLocationUpdateTime = micros();
                 setTiltLocation((byte0 << 8) + byte1);
                 break;
             case panCode:
                 velocityMode = false;
-                 = micros();
+                lastLocationUpdateTime = micros();
                 setPanLocation((byte0 << 8) + byte1);
                 break;
             case velocityCode:
                 velocityMode = true;
-                 = micros();
+                lastLocationUpdateTime = micros();
                 panVelocity = (int8_t) byte0 * VELOCITY_MULTIPLIER;
                 tiltVelocity = (int8_t) byte1 * VELOCITY_MULTIPLIER;
                 if (panVelocity < -0.0001) {
@@ -427,9 +429,6 @@ void setup() {
 
 void loop() {
     processInput();
-
-    
-
     updateLocation();
     updateFlywheels();
 }

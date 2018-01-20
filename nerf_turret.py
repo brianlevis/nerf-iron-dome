@@ -56,6 +56,13 @@ def send_v(pan_velocity, tilt_velocity):
     arg = (pan_velocity << 8) + tilt_velocity
     send_command('v', arg)
 
+def send_loc(pan_location, tilt_location):
+    send_command('p', pan_location)
+    send_command('t', tilt_location)
+
+def send_r(rev_speed):
+    send_command('r', rev_speed << 8)
+
 def printy():
     while True:
         print(ser.readline())
