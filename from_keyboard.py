@@ -61,7 +61,7 @@ def main_loop(rel):
                     nerf_turret.send_v(0, min(-vel+20,0))
                     motion = 'd'
 
-            if motion != 'n' and time.time() - last_pressed > 0.6:
+            if motion != 'n' and time.time() - last_pressed > 0.5:
                 nerf_turret.send_v(0,0)
                 motion = 'n'
 
