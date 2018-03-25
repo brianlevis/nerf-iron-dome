@@ -1,14 +1,9 @@
-/* Initial Gun Test
-
-The circuit:
-Pusher switch on pin 4
-Acceleration motor relay input on pin 7
-Firing motor relay input on pin 8
-Manual input on pin 12
-
-*/
-
 #include <Servo.h>
+
+/*
+---------------------------------------------------------
+                       Parameters
+*/
 
 #define REV_UP_TIME          300
 #define MAX_FIRE_TIME       1000
@@ -25,6 +20,14 @@ Manual input on pin 12
 
 #define REV_UP_PERIOD         20
 #define MAX_REV_DOWN_PERIOD  200
+
+#define PUSHER_PULSE_ON_TIME  15
+#define PUSHER_PULSE_OFF_TIME 80
+
+/*
+---------------------------------------------------------
+                        Constants
+*/
 
 const int pusherSwitchPin      =  3;
 const int accelerationMotorPin =  6;
@@ -56,34 +59,32 @@ char validInputs[commandInputCount] = {
 const int startAutoFireCode = 65535;
 const int stopAutoFireCode  = 0;
 
-// state variables
-float panState       = PAN_MIDPOINT;
-float panGoal        = PAN_MIDPOINT;
-float panHalfway     = PAN_MIDPOINT;
-float panVelocity    = 0.0;
-float tiltState      = TILT_MIDPOINT;
-float tiltGoal       = TILT_MIDPOINT;
-float tiltHalfway    = TILT_MIDPOINT;
-float tiltVelocity   = 0.0;
-bool velocityMode = false;
-
-int revSpeed = 0;
-bool revving = false;
-long lastRevUpdateTime = millis();
-
-long lastLocationUpdateTime = micros();
-
-long timeElapsedSinceUpdate;
-int serialAction;
-unsigned int serialParameter;
 String s;
 int i;
+
 // PWM range 556-2420 => 1488
 Servo panServo;
 Servo tiltServo;
 
 bool withinRange(int var, int low, int high) {
     return low <= var && var <= high;
+}
+
+/*
+---------------------------------------------------------
+                     Motion Control
+*/
+
+void tilt(int location) {
+    if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
+        tiltServo.writeMicroseconds(location);
+    }
+}
+
+void pan(int location) {
+    if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
+        panServo.writeMicroseconds(location);
+    }
 }
 
 void revUp() {
@@ -104,9 +105,9 @@ void pusherOff() {
 
 void pulsePusher() {
     pusherOn();
-    delay(15);
+    delay(PUSHER_PULSE_ON_TIME);
     pusherOff();
-    delay(80);
+    delay(PUSHER_PULSE_OFF_TIME);
 }
 
 void resetPusher() {
@@ -114,17 +115,23 @@ void resetPusher() {
     while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
 }
 
-void flash() {
-    delay(2);
-    digitalWrite(ledPin, HIGH);
-    delay(20);
-    digitalWrite(ledPin, LOW);
-}
-
 /*
 ---------------------------------------------------------
                         Movement
 */
+
+float panState       = PAN_MIDPOINT;
+float panGoal        = PAN_MIDPOINT;
+float panHalfway     = PAN_MIDPOINT;
+float panVelocity    = 0.0;
+float tiltState      = TILT_MIDPOINT;
+float tiltGoal       = TILT_MIDPOINT;
+float tiltHalfway    = TILT_MIDPOINT;
+float tiltVelocity   = 0.0;
+bool velocityMode = false;
+
+long lastLocationUpdateTime = micros();
+long timeElapsedSinceUpdate;
 
 void setPanLocation(int argument) {
     // argument: [-700, 700]
@@ -132,45 +139,11 @@ void setPanLocation(int argument) {
     panGoal = PAN_MIDPOINT + argument;
 }
 
-
 void setTiltLocation(int argument) {
     // argument: [-300, 500]
     tiltHalfway = (tiltState + (TILT_MIDPOINT + argument)) / 2;
     tiltGoal = TILT_MIDPOINT + argument;
 }
-
-
-void tilt(int location) {
-    if (withinRange(location, MAX_TILT_DOWN, MAX_TILT_UP)) {
-        tiltServo.writeMicroseconds(location);
-    }
-}
-
-
-void pan(int location) {
-    if (withinRange(location, MAX_PAN_LEFT, MAX_PAN_RIGHT)) {
-        panServo.writeMicroseconds(location);
-    } else {
-        Serial.print("(int) panState: ");
-        Serial.println(location);
-        Serial.print("panState: ");
-        Serial.println(panState);
-        Serial.print("panGoal: ");
-        Serial.println(panGoal);
-        Serial.print("panHalfway: ");
-        Serial.print(panHalfway);
-        flash();
-        delay(500);
-        flash();
-        delay(500);
-        flash();
-        delay(500);
-        flash();
-        delay(500);
-        flash();
-    }
-}
-
 
 /*
     Approximates velocity based on delta since last update, and
@@ -206,7 +179,6 @@ void incrementPanLocation(long delta) {
     pan((int) panState);
 }
 
-
 void incrementTiltLocation(long delta) {
     bool movingUp = tiltHalfway < tiltGoal;
     bool halfwayDone = (movingUp && tiltState >= tiltHalfway) || (!movingUp && tiltState <= tiltHalfway);
@@ -236,7 +208,6 @@ void incrementTiltLocation(long delta) {
     tilt((int) tiltState);
 }
 
-
 void updateLocation() {
     timeElapsedSinceUpdate = micros() - lastLocationUpdateTime;
     if (timeElapsedSinceUpdate > UPDATE_INTERVAL) {
@@ -250,7 +221,21 @@ void updateLocation() {
     }
 }
 
-// Power flywheels for 0.2 seconds, power down for between 0 to 0.4 seconds
+/*
+---------------------------------------------------------
+                         Firing
+*/
+
+int revSpeed = 0;
+bool revving = false;
+long lastRevUpdateTime = millis();
+
+int remainingShots = 0;
+bool pushing = false;
+bool retracting = false;
+long lastPushUpdateTime = millis();
+
+// Power flywheels for 20ms, power down for up to 200ms
 void updateFlywheels() {
     if (revSpeed == 0 || revSpeed == 255) return;
     int timeSinceLastRevUpdate = millis() - lastRevUpdateTime;
@@ -265,22 +250,32 @@ void updateFlywheels() {
     }
 }
 
-/*
----------------------------------------------------------
-                         Firing
-*/
+void updatePusher() {
+    if (revSpeed < 10 || remainingShots == 0) return;
+    int timeSinceLastPushUpdate = millis() - lastPushUpdateTime;
+    if (!retracting && digitalRead(pusherSwitchPin) == HIGH) {
+        retracting = true;
+    } else if (retracting && digitalRead(pusherSwitchPin) == LOW) {
+        retracting = false;
+        remainingShots -= 1;
+    }
+    if (remainingShots == 0 || timeSinceLastPushUpdate > MAX_FIRE_TIME) {
+            pusherOff();
+            pushing = false;
+            return;
+        }
+    if (pushing && timeSinceLastPushUpdate > PUSHER_PULSE_ON_TIME) {
+        pusherOff();
+        pushing = false;
+        lastPushUpdateTime = millis();
+    } else if (!pushing && timeSinceLastPushUpdate > PUSHER_PULSE_OFF_TIME) {
+        pusherOn();
+        pushing = true;
+        lastPushUpdateTime = millis();
+    }
+}
 
-//void rev(int argument) {
-//    if (argument == 0) {
-//        revDown();
-//    } else if (argument == 65535) {
-//        revUp();
-//    } else {
-//        reportError("Bad rev argument!");
-//    }
-//}
-//
-//void fireShots(int numShots) {
+// void fireShots(int numShots) {
 //    startTime = millis();
 //    revUp();
 //    while (millis() - startTime < REV_UP_TIME);
@@ -294,9 +289,9 @@ void updateFlywheels() {
 //        }
 //    }
 //    revDown();
-//}
-//
-//void fire(int argument) {
+// }
+
+// void fire(int argument) {
 //    if (withinRange(argument, 1, 37)) {
 //        fireShots(argument);
 //    } else if (argument == 0) {
@@ -304,14 +299,16 @@ void updateFlywheels() {
 //    } else if (argument == 65535) {
 //        pusherOn();
 //    } else {
-//        reportError("Inproper number of shots received!");
+//        reportError("Improper number of shots received!");
 //    }
-//}
+// }
 
 /*
 ---------------------------------------------------------
                 Serial Communication
 */
+
+int serialAction;
 
 void requestInput() {
     Serial.write(waitCode);
@@ -359,17 +356,16 @@ void processInput() {
         switch (operationCode) {
             case revCode:
                 // [0, 255]
-                revSpeed = byte0;
+                revSpeed = byte1;
                 // uint8_t timeout = byte1;
                 if (revSpeed == 0) revDown();
                 else if (revSpeed == 255) revUp();
                 break;
             case fireCode:
-                {
-                    // [0, 255]
-                    uint8_t shotCount = byte0;
-                    uint8_t shootingFrequency = byte1;
-                }
+                // [0, 255]
+                shotCount = byte1;
+                lastPushUpdateTime = millis();
+                // uint8_t shootingFrequency = byte1;
                 break;
             case tiltCode:
                 velocityMode = false;
@@ -431,4 +427,5 @@ void loop() {
     processInput();
     updateLocation();
     updateFlywheels();
+    updatePusher();
 }
