@@ -64,7 +64,7 @@ def send_r(rev_speed):
     send_command('r', rev_speed << 8)
 
 def send_s(num_shots):
-    send_command('f', num_shots)
+    send_command('f', num_shots << 8)
 
 def printy():
     while True:

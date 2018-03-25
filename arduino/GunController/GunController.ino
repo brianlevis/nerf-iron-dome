@@ -356,14 +356,14 @@ void processInput() {
         switch (operationCode) {
             case revCode:
                 // [0, 255]
-                revSpeed = byte1;
+                revSpeed = byte0;
                 // uint8_t timeout = byte1;
                 if (revSpeed == 0) revDown();
                 else if (revSpeed == 255) revUp();
                 break;
             case fireCode:
                 // [0, 255]
-                shotCount = byte1;
+                remainingShots = byte0;
                 lastPushUpdateTime = millis();
                 // uint8_t shootingFrequency = byte1;
                 break;
