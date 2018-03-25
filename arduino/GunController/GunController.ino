@@ -24,7 +24,7 @@ Manual input on pin 12
 #define UPDATE_INTERVAL     2000
 
 #define REV_UP_PERIOD         20
-#define MAX_REV_DOWN_PERIOD   80
+#define MAX_REV_DOWN_PERIOD  200
 
 const int pusherSwitchPin      =  3;
 const int accelerationMotorPin =  6;
