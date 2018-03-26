@@ -15,13 +15,10 @@ The turret has been constructed, and may be controlled via a USB Xbox 360 Contro
 API is being rewritten to be higher performing, and image processing work is in progress.
 ## TODO
 Software:
-* Rewrite turret controller and python API
-  * Fire
-  * Rev
-  * Heartbeat
+* Polish turret controller and python API
 * Recognize tennis ball
 ## Credits
-Turret base inspired by Britt Michelsen's [Nerf Vulcan Sentry Gun](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/), Nerf RapidStrike [teardown guide](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/),
+Turret base inspired by Britt Michelsen's [Nerf Vulcan Sentry Gun](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/), Nerf RapidStrike [teardown guide](http://torukmakto4.blogspot.com/2013/10/standard-rapidstrike-illustrated-guide.html),
 [xboxdrv python wrapper class](https://github.com/FRC4564/Xbox)
 ## Tech
 ### Hardware
