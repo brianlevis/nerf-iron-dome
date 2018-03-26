@@ -22,7 +22,7 @@
 #define MAX_REV_DOWN_PERIOD  200
 
 #define PUSHER_PULSE_ON_TIME  15
-#define PUSHER_PULSE_OFF_TIME 80
+#define PUSHER_PULSE_OFF_TIME 150
 
 /*
 ---------------------------------------------------------
@@ -72,7 +72,7 @@ bool withinRange(int var, int low, int high) {
 
 /*
 ---------------------------------------------------------
-                     Motion Control
+                      Pin Control
 */
 
 void tilt(int location) {
@@ -113,6 +113,14 @@ void pulsePusher() {
 void resetPusher() {
     pusherOff();
     while (digitalRead(pusherSwitchPin) == HIGH) pulsePusher();
+}
+
+void ledOn() {
+    digitalWrite(ledPin, HIGH);
+}
+
+void ledOff() {
+    digitalWrite(ledPin, LOW);
 }
 
 /*
@@ -231,8 +239,8 @@ bool revving = false;
 long lastRevUpdateTime = millis();
 
 int remainingShots = 0;
-bool pushing = false;
-bool retracting = false;
+bool pusherMotorOn = false; // Is pusher motor on
+bool retracting = false; // Is pusher motor retracting
 long lastPushUpdateTime = millis();
 
 // Power flywheels for 20ms, power down for up to 200ms
@@ -251,26 +259,32 @@ void updateFlywheels() {
 }
 
 void updatePusher() {
-    if (revSpeed < 10 || remainingShots == 0) return;
+    if (revSpeed < 10 || remainingShots == 0) {
+        remainingShots = 0;
+        return;
+    }
     int timeSinceLastPushUpdate = millis() - lastPushUpdateTime;
-    if (!retracting && digitalRead(pusherSwitchPin) == HIGH) {
+    bool pusherOut = (digitalRead(pusherSwitchPin) == HIGH);
+    if (!retracting && pusherOut) {
         retracting = true;
-    } else if (retracting && digitalRead(pusherSwitchPin) == LOW) {
+        ledOn();
+    } else if (retracting && !pusherOut) {
         retracting = false;
         remainingShots -= 1;
+        ledOff();
     }
     if (remainingShots == 0 || timeSinceLastPushUpdate > MAX_FIRE_TIME) {
             pusherOff();
-            pushing = false;
+            pusherMotorOn = false;
             return;
         }
-    if (pushing && timeSinceLastPushUpdate > PUSHER_PULSE_ON_TIME) {
+    if (pusherMotorOn && timeSinceLastPushUpdate > PUSHER_PULSE_ON_TIME) {
         pusherOff();
-        pushing = false;
+        pusherMotorOn = false;
         lastPushUpdateTime = millis();
-    } else if (!pushing && timeSinceLastPushUpdate > PUSHER_PULSE_OFF_TIME) {
+    } else if (!pusherMotorOn && timeSinceLastPushUpdate > PUSHER_PULSE_OFF_TIME) {
         pusherOn();
-        pushing = true;
+        pusherMotorOn = true;
         lastPushUpdateTime = millis();
     }
 }
