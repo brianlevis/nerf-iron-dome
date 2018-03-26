@@ -1,5 +1,11 @@
 import serial
-from time import time
+import sys
+from time import sleep, time
+
+MIN_PYTHON = (3, 3)
+if sys.version_info < MIN_PYTHON:
+    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
+
 
 ser = serial.Serial('/dev/ttyACM0', 9600)
 
@@ -28,6 +34,12 @@ killCode      = 'k'
 # def tilt(val):
 #     return 1650 + val * 350
 
+# Example usage:
+# set_velocity(10, 10); sleep(1);
+# set_velocity(-20,-20); sleep(1);
+# fire(5); sleep(3);
+# pan(0); tilt(0);
+
 last_command_time = time()
 def send_command(action_code, argument):
 
@@ -51,19 +63,19 @@ def send_command(action_code, argument):
     print('sending %s %d'%(action_code, argument))
     ser.write(bytes([115, ord(action_code), (argument & 0xff00) >> 8, argument & 0xff, 101]))
 
-def send_v(pan_velocity, tilt_velocity):
+def set_velocity(pan_velocity, tilt_velocity):
     pan_velocity, tilt_velocity = pan_velocity & 0xff, tilt_velocity & 0xff # truncate to byte size
     arg = (pan_velocity << 8) + tilt_velocity
     send_command('v', arg)
 
-def send_loc(pan_location, tilt_location):
+def move(pan_location, tilt_location):
     send_command('p', pan_location)
     send_command('t', tilt_location)
 
-def send_r(rev_speed):
+def rev(rev_speed):
     send_command('r', rev_speed << 8)
 
-def send_s(num_shots):
+def fire(num_shots):
     send_command('f', num_shots << 8)
 
 def printy():

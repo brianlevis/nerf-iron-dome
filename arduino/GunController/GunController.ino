@@ -242,11 +242,12 @@ int remainingShots = 0;
 bool pusherMotorOn = false; // Is pusher motor on
 bool retracting = false; // Is pusher motor retracting
 long lastPushUpdateTime = millis();
+long lastStateUpdateTime = millis();
 
 // Power flywheels for 20ms, power down for up to 200ms
 void updateFlywheels() {
     if (revSpeed == 0 || revSpeed == 255) return;
-    int timeSinceLastRevUpdate = millis() - lastRevUpdateTime;
+    long timeSinceLastRevUpdate = millis() - lastRevUpdateTime;
     if (revving && timeSinceLastRevUpdate > REV_UP_PERIOD) {
         revDown();
         revving = false;
@@ -263,14 +264,17 @@ void updatePusher() {
         remainingShots = 0;
         return;
     }
-    int timeSinceLastPushUpdate = millis() - lastPushUpdateTime;
+    long timeSinceLastPushUpdate = millis() - lastPushUpdateTime;
+    bool updateState = (millis() - lastStateUpdateTime > 10);
     bool pusherOut = (digitalRead(pusherSwitchPin) == HIGH);
-    if (!retracting && pusherOut) {
+    if (!retracting && pusherOut && updateState) {
         retracting = true;
+        lastStateUpdateTime = millis();
         ledOn();
-    } else if (retracting && !pusherOut) {
+    } else if (retracting && !pusherOut && updateState) {
         retracting = false;
         remainingShots -= 1;
+        lastStateUpdateTime = millis();
         ledOff();
     }
     if (remainingShots == 0 || timeSinceLastPushUpdate > MAX_FIRE_TIME) {
