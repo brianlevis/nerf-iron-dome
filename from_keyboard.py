@@ -58,6 +58,7 @@ def main_loop(rel):
             if motion != 'n' and time.time() - last_pressed > 0.5:
                 nerf_turret.set_velocity(0,0)
                 motion = 'n'
+            time.sleep(100)
     finally:
         nerf_turret.pan(0)
         nerf_turret.tilt(0)
