@@ -67,6 +67,9 @@ def move(pan_location, tilt_location):
 def rev(rev_speed):
     send_command('r', rev_speed << 8)
 
+def patrol():
+    send_command('a', 1 << 8)
+
 def fire(num_shots):
     send_command('f', num_shots << 8)
 

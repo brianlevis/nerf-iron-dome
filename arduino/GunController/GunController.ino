@@ -50,10 +50,11 @@ const char panCode       = 'p';
 const char velocityCode  = 'v';
 const char heartbeatCode = 'h';
 const char killCode      = 'k';
+const char actionCode    = 'a';
 
-const int commandInputCount = 7;
+const int commandInputCount = 8;
 char validInputs[commandInputCount] = {
-    revCode, fireCode, tiltCode, panCode, velocityCode, heartbeatCode, killCode
+    revCode, fireCode, tiltCode, panCode, velocityCode, heartbeatCode, killCode, actionCode
 };
 
 const int startAutoFireCode = 65535;
@@ -293,33 +294,27 @@ void updatePusher() {
     }
 }
 
-// void fireShots(int numShots) {
-//    startTime = millis();
-//    revUp();
-//    while (millis() - startTime < REV_UP_TIME);
-//    for ( ; numShots > 0; numShots--) {
-//        startTime = millis();
-//        while (digitalRead(pusherSwitchPin) == LOW && millis() - startTime < MAX_FIRE_TIME) pulsePusher();
-//        while (digitalRead(pusherSwitchPin) == HIGH && millis() - startTime < MAX_FIRE_TIME) pulsePusher();
-//        if (millis() - startTime > MAX_FIRE_TIME) {
-//            revDown();
-//            reportError("Firing sensor not responding!");
-//        }
-//    }
-//    revDown();
-// }
+/*
+---------------------------------------------------------
+                  Action Sequences
+*/
 
-// void fire(int argument) {
-//    if (withinRange(argument, 1, 37)) {
-//        fireShots(argument);
-//    } else if (argument == 0) {
-//        resetPusher();
-//    } else if (argument == 65535) {
-//        pusherOn();
-//    } else {
-//        reportError("Improper number of shots received!");
-//    }
-// }
+bool actionInProgress = false;
+int actionNumber = 0;
+
+void updateAction() {
+    if (!actionInProgress) return;
+    switch (actionNumber) {
+        case 1:
+            // lastLocationUpdateTime = micros();
+            velocityMode = false;
+            int clock = millis() % 30000;
+            float t = 2 * 3.14 * clock / 30000.0;
+            setPanLocation(600 * cos(t));
+            setTiltLocation(100 + 200 * sin(t));
+            break;
+    }
+}
 
 /*
 ---------------------------------------------------------
@@ -372,6 +367,10 @@ void processInput() {
         }
 
         switch (operationCode) {
+            case actionCode:
+                actionNumber = byte0;
+                actionInProgress = (actionNumber != 0);
+                break;
             case revCode:
                 // [0, 255]
                 revSpeed = byte0;
@@ -386,16 +385,19 @@ void processInput() {
                 // uint8_t shootingFrequency = byte1;
                 break;
             case tiltCode:
+                actionInProgress = false;
                 velocityMode = false;
                 lastLocationUpdateTime = micros();
                 setTiltLocation((byte0 << 8) + byte1);
                 break;
             case panCode:
+                actionInProgress = false;
                 velocityMode = false;
                 lastLocationUpdateTime = micros();
                 setPanLocation((byte0 << 8) + byte1);
                 break;
             case velocityCode:
+                actionInProgress = false;
                 velocityMode = true;
                 lastLocationUpdateTime = micros();
                 panVelocity = (int8_t) byte0 * VELOCITY_MULTIPLIER;
@@ -446,4 +448,5 @@ void loop() {
     updateLocation();
     updateFlywheels();
     updatePusher();
+    updateAction();
 }

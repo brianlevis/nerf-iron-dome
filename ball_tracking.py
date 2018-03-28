@@ -1,61 +1,43 @@
 # USAGE
 # python ball_tracking.py --video ball_tracking_example.mp4
 # python ball_tracking.py
+# must run sudo modprobe bcm2835-v4l2
 
-# import the necessary packages
 from collections import deque
 import numpy as np
 import argparse
 import imutils
 import cv2
 
+import math
 import time
 import nerf_turret
 
-# construct the argument parse and parse the arguments
+# CV2 code taken from https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+# "Ball Tracking with OpenCV" by Adrian Rosebrock, 9/14/2015
+
 ap = argparse.ArgumentParser()
-ap.add_argument("-v", "--video",
-    help="path to the (optional) video file")
 ap.add_argument("-b", "--buffer", type=int, default=64,
     help="max buffer size")
 args = vars(ap.parse_args())
 
-# define the lower and upper boundaries of the "green"
-# ball in the HSV color space, then initialize the
-# list of tracked points
 greenLower = (29, 86, 6)
 greenUpper = (64, 255, 255)
 pts = deque(maxlen=args["buffer"])
 
-# if a video path was not supplied, grab the reference
-# to the webcam
-if not args.get("video", False):
-    camera = cv2.VideoCapture(0)
+camera = cv2.VideoCapture(0)
 
-# otherwise, grab a reference to the video file
-else:
-    camera = cv2.VideoCapture(args["video"])
-
-time_per_frame = 1 / 15
+time_per_frame = 1 / 20
 lastUpdate = time.time()
-# keep looping
+last_ball_time = 0
 while True:
     if time.time() - lastUpdate < time_per_frame:
         time.sleep(time_per_frame / 5)
         continue
     lastUpdate = time.time()
-    # grab the current frame
     (grabbed, frame) = camera.read()
 
-    # if we are viewing a video and we did not grab a frame,
-    # then we have reached the end of the video
-    if args.get("video") and not grabbed:
-        break
-
-    # resize the frame, blur it, and convert it to the HSV
-    # color space
     frame = imutils.resize(frame, width=600)
-    # blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # construct a mask for the color "green", then perform
@@ -70,18 +52,34 @@ while True:
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_SIMPLE)[-2]
     center = None
-
-    # only proceed if at least one contour was found
     if len(cnts) > 0:
-        # find the largest contour in the mask, then use
-        # it to compute the minimum enclosing circle and
-        # centroid
         c = max(cnts, key=cv2.contourArea)
         ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if len(cnts) > 0 and radius >= 10:
+        last_ball_time = time.time()
         M = cv2.moments(c)
         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-
-        print(center)
+        dx, dy = 300-center[0], center[1]-230
+        vx, vy = 50 * dx // 300, 50 * dy // 300
+        print(dx, dy)
+        distance = math.sqrt(dx**2 + dy**2)
+        if distance < 5:
+            nerf_turret.set_velocity(0, 0)
+        else:
+            nerf_turret.set_velocity(vx, vy)
+        print('>>>', distance)
+        #continue
+        if distance > 50:
+            nerf_turret.rev(0)
+        elif distance > 40:
+            nerf_turret.rev(50)
+        elif distance > 30:
+            nerf_turret.rev(100)
+        elif distance > 20:
+            nerf_turret.rev(150)
+        else:
+            nerf_turret.rev(150)
+            nerf_turret.fire(1)
 
         # # only proceed if the radius meets a minimum size
         # if radius > 10:
@@ -90,7 +88,12 @@ while True:
         #     cv2.circle(frame, (int(x), int(y)), int(radius),
         #         (0, 255, 255), 2)
         #     cv2.circle(frame, center, 5, (0, 0, 255), -1)
-
+    else:
+        nerf_turret.rev(0)
+        if time.time() - last_ball_time > 10:
+            nerf_turret.patrol()
+        else:
+            nerf_turret.set_velocity(0, 0)
     # update the points queue
     pts.appendleft(center)
 
