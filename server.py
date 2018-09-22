@@ -44,7 +44,7 @@ def test_connect():
 
 @socketio.on("action_code")
 def print_client_version(message):
-    print("received:" + message["code"]) #this is an example of a websocket message with a payload from client
+    print("received:{}".format(message["code"])) #this is an example of a websocket message with a payload from client
 
 @socketio.on("controller_state")
 def handle_controller_state(message):
