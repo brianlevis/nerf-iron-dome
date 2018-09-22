@@ -12,6 +12,8 @@ CONFIDENCE = 0.4
 
 x_pos, y_pos = 0, 0
 def set_change(x, y):
+    global x_pos
+    global y_pos
     new_x_pos = x_pos + x
     x_pos = max(-700, new_x_pos)
     x_pos = min(700, new_x_pos)
@@ -40,13 +42,12 @@ while True:
     print("[INFO] starting loop...")
     lastUpdate = time.time()
     (grabbed, frame) = camera.read()
+    frame = cv2.resize(frame, (300, 300))
     frame = cv2.flip(frame, 0)
-    # frame = imutils.resize(frame, width=400)
 
     # grab the frame dimensions and convert it to a blob
     (h, w) = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0,
-                                 (300, 300), (104.0, 177.0, 123.0))
+    blob = cv2.dnn.blobFromImage(1.0, (300, 300), (104.0, 177.0, 123.0))
 
     # pass the blob through the network and obtain the detections and
     # predictions
@@ -78,8 +79,8 @@ while True:
 
         print("Best face at", (x, y))
         (startX, startY, endX, endY) = box.astype("int")
-        dx, dy = 150-x, y-115
-        set_change(dx, 0)
+        dx, dy = 217-x, y-115
+        set_change(dx * 10, 0)
         # dx, dy = 150-x, y-115
         # vx, vy = dx // 100, dy // 100
         # distance = math.sqrt(dx**2 + dy**2)
@@ -89,12 +90,13 @@ while True:
         #     nerf_turret.set_velocity(vx, vy)
         # # draw the bounding box of the face along with the associated
         # # probability
-        # text = "{:.2f}%".format(confidence * 100)
-        # y = startY - 10 if startY - 10 > 10 else startY + 10
-        # cv2.rectangle(frame, (startX, startY), (endX, endY),
-        #               (0, 0, 255), 2)
-        # cv2.putText(frame, text, (startX, y),
-        #             cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        text = "{:.2f}%".format(confidence * 100)
+        y_ = startY - 10 if startY - 10 > 10 else startY + 10
+        cv2.rectangle(frame, (startX, startY), (endX, endY),
+                      (0, 0, 255), 2)
+        cv2.putText(frame, text, (startX, y_),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        cv2.imwrite("frame{}_{}.png".format(x, y), frame)
 
     key = cv2.waitKey(1) & 0xFF
 
