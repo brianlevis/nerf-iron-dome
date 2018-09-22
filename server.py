@@ -1,6 +1,8 @@
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
 from camera_pi import Camera
+import nerf_turret
+
 app = Flask(__name__, static_folder='public')
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
@@ -44,7 +46,12 @@ def test_connect():
 def print_client_version(message):
     print("received:" + message["code"]) #this is an example of a websocket message with a payload from client
 
-# maybe define some handlers to write codes to serial on certain button presses?
+@socketio.on("controller_state")
+def handle_controller_state(message):
+    # recv 10 times per second
+    velocity_x = int(message["move_x"] * 127)
+    velocity_y = int(message["move_y"] * 127)
+    nerf_turret.set_velocity(velocity_x, velocity_y)
 
 @socketio.on('disconnect')
 def test_disconnect():
