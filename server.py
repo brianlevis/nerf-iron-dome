@@ -1,5 +1,5 @@
 from flask import Flask, render_template, Response
-from flask.ext.socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit
 from camera_pi import Camera
 app = Flask(__name__)
 
