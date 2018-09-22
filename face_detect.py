@@ -27,6 +27,7 @@ while True:
     if time.time() - lastUpdate < time_per_frame:
         time.sleep(time_per_frame / 5)
         continue
+    print("[INFO] starting loop...")
     lastUpdate = time.time()
     (grabbed, frame) = camera.read()
     # frame = imutils.resize(frame, width=400)
@@ -39,7 +40,9 @@ while True:
     # pass the blob through the network and obtain the detections and
     # predictions
     net.setInput(blob)
+    print("[INFO] running net...")
     detections = net.forward()
+    print("[INFO] processing detections...")
 
     best_detection = None
     best_confidence = None
@@ -49,7 +52,7 @@ while True:
         detection = detections[0, 0, i, :]
         confidence = detection[2]
 
-        if confidence < CONFIDENCE:
+        if confidence >= CONFIDENCE:
             print("Detected face with confidence", confidence)
 
         if confidence < CONFIDENCE or (best_confidence is not None and confidence < best_confidence):
@@ -80,9 +83,6 @@ while True:
         # cv2.putText(frame, text, (startX, y),
         #             cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
-    # show the output frame
-    cv2.imshow("Frame", frame)
-    print(text)
     key = cv2.waitKey(1) & 0xFF
 
     # if the `q` key was pressed, break from the loop
