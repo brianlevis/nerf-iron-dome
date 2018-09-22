@@ -40,11 +40,11 @@ elapsed = [0] * len(times)
 while not joy.Back():
     c_t = time()
     elapsed = [c_t - t for t in times]
-    if elapsed[0] > 0.4 and joy.rightTrigger() > .3:
+    if elapsed[0] > 0.2 and joy.rightTrigger() > .2:
         nerf_turret.fire(1)
         times[0] = time()
-    if elapsed[1] > 0.3:
-        nerf_turret.rev((int) (max(0, joy.leftTrigger() - 0.3) / 0.7 * 150))
+    if elapsed[1] > 0.2:
+        nerf_turret.rev((int) (max(0, joy.leftTrigger() - 0.2) / 0.8 * 200))
         times[1] = time()
     if elapsed[2] > 0.1:
         x_p, y_p = joy.rightStick()
