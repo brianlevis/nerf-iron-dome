@@ -1,4 +1,5 @@
-from imutils.video import VideoStream
+import nerf_turret
+import math
 import numpy as np
 import argparse
 import imutils
@@ -40,30 +41,44 @@ while True:
     net.setInput(blob)
     detections = net.forward()
 
+    best_detection = None
+    best_confidence = None
+
     # loop over the detections
     for i in range(0, detections.shape[2]):
-        # extract the confidence (i.e., probability) associated with the
-        # prediction
-        confidence = detections[0, 0, i, 2]
+        detection = detections[0, 0, i, :]
+        confidence = detection[2]
 
-        # filter out weak detections by ensuring the `confidence` is
-        # greater than the minimum confidence
         if confidence < CONFIDENCE:
+            print("Detected face with confidence", confidence)
+
+        if confidence < CONFIDENCE or (best_confidence is not None and confidence < best_confidence):
             continue
+        best_detection = detection
+        best_confidence = confidence
 
         # compute the (x, y)-coordinates of the bounding box for the
         # object
         box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-        (startX, startY, endX, endY) = box.astype("int")
+        x, y = int(round((box[0] + box[2]) / 2)), int(round((box[1] + box[3]) / 2))
 
-        # draw the bounding box of the face along with the associated
-        # probability
-        text = "{:.2f}%".format(confidence * 100)
-        y = startY - 10 if startY - 10 > 10 else startY + 10
-        cv2.rectangle(frame, (startX, startY), (endX, endY),
-                      (0, 0, 255), 2)
-        cv2.putText(frame, text, (startX, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        print("Best face at", (x, y))
+        (startX, startY, endX, endY) = box.astype("int")
+        dx, dy = 150-x, y-115
+        vx, vy = 50 * dx // 300, 50 * dy // 300
+        distance = math.sqrt(dx**2 + dy**2)
+        if distance < 5:
+            nerf_turret.set_velocity(0, 0)
+        else:
+            nerf_turret.set_velocity(vx, vy)
+        # # draw the bounding box of the face along with the associated
+        # # probability
+        # text = "{:.2f}%".format(confidence * 100)
+        # y = startY - 10 if startY - 10 > 10 else startY + 10
+        # cv2.rectangle(frame, (startX, startY), (endX, endY),
+        #               (0, 0, 255), 2)
+        # cv2.putText(frame, text, (startX, y),
+        #             cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
     # show the output frame
     cv2.imshow("Frame", frame)
