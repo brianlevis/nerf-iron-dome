@@ -50,7 +50,7 @@ def print_client_version(message):
 def handle_controller_state(message):
     # recv 10 times per second
     velocity_x = int(message["move_x"] * -127)
-    velocity_y = int(message["move_y"] * -127)
+    velocity_y = int(message["move_y"] * 127)
     nerf_turret.set_velocity(velocity_x, velocity_y)
 
 @socketio.on('disconnect')
