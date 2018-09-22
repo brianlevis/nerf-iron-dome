@@ -10,6 +10,12 @@ The aim of this project is to build a nerf turret that can do cool stuff. Cool s
 * Guarding an object
 * Reenacting [this scene](https://www.youtube.com/watch?v=mrXfh4hENKs) from RoboCop
 
+## Quick Start
+### Running the Web Server
+There is a python server that provides a live stream of the camera located at `server.py`. To run, do
+1. Activate the virtual environment with `source env/bin/activate`.
+2. `FLASK_APP=server.py flask run --host=0.0.0.0` from the project directory.
+
 ## Status
 The turret has been constructed, and may be controlled via a USB Xbox 360 Controller. It's electronics are ~~spaghetti~~ no longer spaghetti.
 The turret can track and attack an object of a certain color (defined as a range of HSV values) and size, such as a green tennis ball or maroon sweatshirt. Even when the target is reliably identified however, tracking is not terribly smooth.

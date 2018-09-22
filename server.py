@@ -9,7 +9,7 @@ socketio = SocketIO(app)
 #
 #
 # See http://flask.pocoo.org/docs/0.12/quickstart/ for instructions on how to run this file.
-# Quick run (in terminal): flask run --host=0.0.0.0
+# Quick run (in terminal): FLASK_APP=server.py flask run --host=0.0.0.0
 #
 #
 
