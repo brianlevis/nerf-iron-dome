@@ -8,7 +8,17 @@ import cv2
 
 PROTOTXT = 'deploy.prototxt.txt'
 MODEL = 'res10_300x300_ssd_iter_140000.caffemodel'
-CONFIDENCE = 0.5
+CONFIDENCE = 0.4
+
+x_pos, y_pos = 0, 0
+def set_change(x, y):
+    new_x_pos = x_pos + x
+    x_pos = max(-700, new_x_pos)
+    x_pos = min(700, new_x_pos)
+    new_y_pos = y_pos + y
+    y_pos = max(-300, new_y_pos)
+    y_pos = min(500, new_y_pos)
+    nerf_turret.move(x_pos, y_pos)
 
 # load our serialized model from disk
 print("[INFO] loading model...")
@@ -30,6 +40,7 @@ while True:
     print("[INFO] starting loop...")
     lastUpdate = time.time()
     (grabbed, frame) = camera.read()
+    frame = cv2.flip(frame, 0)
     # frame = imutils.resize(frame, width=400)
 
     # grab the frame dimensions and convert it to a blob
@@ -68,12 +79,14 @@ while True:
         print("Best face at", (x, y))
         (startX, startY, endX, endY) = box.astype("int")
         dx, dy = 150-x, y-115
-        vx, vy = 50 * dx // 300, 50 * dy // 300
-        distance = math.sqrt(dx**2 + dy**2)
-        if distance < 5:
-            nerf_turret.set_velocity(0, 0)
-        else:
-            nerf_turret.set_velocity(vx, vy)
+        set_change(dx, 0)
+        # dx, dy = 150-x, y-115
+        # vx, vy = dx // 100, dy // 100
+        # distance = math.sqrt(dx**2 + dy**2)
+        # if distance < 5:
+        #     nerf_turret.set_velocity(0, 0)
+        # else:
+        #     nerf_turret.set_velocity(vx, vy)
         # # draw the bounding box of the face along with the associated
         # # probability
         # text = "{:.2f}%".format(confidence * 100)
