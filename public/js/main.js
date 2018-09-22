@@ -11,6 +11,11 @@ function main() {
       socket.emit("action_code", {code: 1});
     }
   );
+  socket.on("disconnect",
+    function() {
+      console.log("Disconnected from WebSocket server");
+    }
+  );
 }
 
 window.onload = main;
