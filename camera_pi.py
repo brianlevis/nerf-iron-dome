@@ -12,6 +12,8 @@ class Camera(BaseCamera):
     @staticmethod
     def frames():
         with picamera.PiCamera() as camera:
+            # flip camera output vertically
+            camera._set_vflip(True)
             # let camera warm up
             time.sleep(2)
 
