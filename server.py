@@ -38,6 +38,7 @@ def video_feed():
 @socketio.on('connect')
 def test_connect():
     print("CLIENT CONNECTED")
+    emit('my response', {'data': 'Connected'})
 
 @socketio.on("action_code")
 def print_client_version(message):
@@ -50,3 +51,6 @@ def test_disconnect():
     print('CLIENT DISCONNECTED')
 
 #------------------------------------------------------------
+
+if __name__ == '__main__':
+    socketio.run(app)
