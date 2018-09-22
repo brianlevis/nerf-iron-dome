@@ -1,7 +1,7 @@
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
 from camera_pi import Camera
-app = Flask(__name__)
+app = Flask(__name__, static_folder='public')
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
