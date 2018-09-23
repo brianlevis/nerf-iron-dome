@@ -1,3 +1,6 @@
+# must run sudo modprobe bcm2835-v4l2
+
+from imutils.video import VideoStream
 import nerf_turret
 import math
 import numpy as np
@@ -28,20 +31,15 @@ net = cv2.dnn.readNetFromCaffe(PROTOTXT, MODEL)
 
 # initialize the video stream and allow the cammera sensor to warmup
 print("[INFO] starting video stream...")
-camera = cv2.VideoCapture(0)
-time.sleep(1.0)
+# camera = cv2.VideoCapture(0)
+vs = VideoStream(src=0).start()
+time.sleep(2.0)
 
-time_per_frame = 1 / 20
-lastUpdate = time.time()
-last_ball_time = 0
 # loop over the frames from the video stream
 while True:
-    if time.time() - lastUpdate < time_per_frame:
-        time.sleep(time_per_frame / 5)
-        continue
     print("[INFO] starting loop...")
     lastUpdate = time.time()
-    (grabbed, frame) = camera.read()
+    frame = vs.read()
     frame = cv2.resize(frame, (400, 300))
     frame = cv2.flip(frame, -1)
 
@@ -107,4 +105,5 @@ while True:
     if key == ord("q"):
         break
 
-camera.release()
+# camera.release()
+vs.stop()
