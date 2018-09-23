@@ -19,11 +19,11 @@ There is a python server that provides a live stream of the camera located at `s
 ## Contributing
 ### Status
 The turret has been constructed, and may be controlled via a USB Xbox 360 Controller. It's electronics are ~~spaghetti~~ no longer spaghetti.
-The turret can track and attack an object of a certain color (defined as a range of HSV values) and size, such as a green tennis ball or maroon sweatshirt. Even when the target is reliably identified however, tracking is not terribly smooth.
+The turret can track and attack faces, or an object of a certain color and size. Tracking is currently just done by moving the turret towards the target with movement and flywheel revving speed proportional to target distance.
 ### TODO
 Software:
 * Improve object tracking techniques
-* Add better object recognition (faces, clothes)
+* Add facial recognition
 ## Credits
 Turret base inspired by Britt Michelsen's [Nerf Vulcan Sentry Gun](http://www.instructables.com/id/Nerf-Vulcan-Sentry-Gun/), Nerf RapidStrike [teardown guide](http://torukmakto4.blogspot.com/2013/10/standard-rapidstrike-illustrated-guide.html),
 [xboxdrv python wrapper class](https://github.com/FRC4564/Xbox)
