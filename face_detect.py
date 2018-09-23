@@ -57,12 +57,19 @@ while True:
     dx, dy = x-216, 157-y
     set_change(dx, dy)
     # dx, dy = 150-x, y-115
-    vx, vy = dx // 100, dy // 100
+    # vx, vy = dx // 100, dy // 100
     distance = math.sqrt(dx**2 + dy**2)
-    if distance < 5:
-        nerf_turret.set_velocity(0, 0)
+    if distance > 50:
+        nerf_turret.rev(0)
+    elif distance > 40:
+        nerf_turret.rev(50)
+    elif distance > 30:
+        nerf_turret.rev(100)
+    elif distance > 20:
+        nerf_turret.rev(150)
     else:
-        nerf_turret.set_velocity(vx, vy)
+        nerf_turret.rev(150)
+        nerf_turret.fire(1)
     time.sleep(0.1)
     # # draw the bounding box of the face along with the associated
     # # probability
