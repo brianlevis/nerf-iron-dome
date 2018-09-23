@@ -65,7 +65,7 @@ function main() {
   document.body.addEventListener("keydown", function (e) {
     switch (e.key) {
       case "ArrowLeft": {
-        controllerState.move_x = 1;
+        controllerState.move_x = -1;
         break;
       }
       case "ArrowRight": {
@@ -77,7 +77,7 @@ function main() {
         break;
       }
       case "ArrowDown": {
-        controllerState.move_y = 1;
+        controllerState.move_y = -1;
         break;
       }
       case "Control": {
