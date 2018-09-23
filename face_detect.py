@@ -45,7 +45,7 @@ while True:
         scaleFactor=1.1,
         minNeighbors=5,
         minSize=(30, 30),
-        flags = cv2.CASCADE_SCALE_IMAGE
+        flags=cv2.CASCADE_SCALE_IMAGE
     )
     if len(faces) == 0:
         continue
@@ -57,12 +57,13 @@ while True:
     dx, dy = x-216, 157-y
     set_change(dx, dy)
     # dx, dy = 150-x, y-115
-    # vx, vy = dx // 100, dy // 100
-    # distance = math.sqrt(dx**2 + dy**2)
-    # if distance < 5:
-    #     nerf_turret.set_velocity(0, 0)
-    # else:
-    #     nerf_turret.set_velocity(vx, vy)
+    vx, vy = dx // 100, dy // 100
+    distance = math.sqrt(dx**2 + dy**2)
+    if distance < 5:
+        nerf_turret.set_velocity(0, 0)
+    else:
+        nerf_turret.set_velocity(vx, vy)
+    time.sleep(0.1)
     # # draw the bounding box of the face along with the associated
     # # probability
 
