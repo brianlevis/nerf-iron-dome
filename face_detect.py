@@ -30,9 +30,11 @@ print("[INFO] starting video stream...")
 # camera = cv2.VideoCapture(0)
 vs = VideoStream(src=0).start()
 time.sleep(2.0)
-
+time_since_face = time.time()
 # loop over the frames from the video stream
 while True:
+    if time_since_face > 5:
+        nerf_turret.rev(0)
     frame = vs.read()
     frame = cv2.resize(frame, (400, 300))
     frame = cv2.flip(frame, -1)
