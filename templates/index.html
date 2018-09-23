@@ -10,6 +10,7 @@
     <style>
       body {
         background-color: #000;
+        color: #fff;
       }
       #live-feed {
         max-width: 100%;
@@ -27,7 +28,7 @@
 
 <body>
   <img id="live-feed" src="{{ url_for('video_feed') }}">
-  <div>
+  <div class="debug-box">
     <p id="alpha">alpha: 0.0</p>
     <p id="beta">beta: 0.0</p>
     <p id="gamma">gamma: 0.0</p>
