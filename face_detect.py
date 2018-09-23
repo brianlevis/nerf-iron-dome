@@ -42,12 +42,12 @@ while True:
     print("[INFO] starting loop...")
     lastUpdate = time.time()
     (grabbed, frame) = camera.read()
-    frame = cv2.resize(frame, (300, 300))
-    frame = cv2.flip(frame, 0)
+    frame = cv2.resize(frame, (300, 400))
+    frame = cv2.flip(frame, -1)
 
     # grab the frame dimensions and convert it to a blob
     (h, w) = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(1.0, (300, 300), (104.0, 177.0, 123.0))
+    blob = cv2.dnn.blobFromImage(frame, 1.0, (h, w), (104.0, 177.0, 123.0))
 
     # pass the blob through the network and obtain the detections and
     # predictions
@@ -96,7 +96,7 @@ while True:
                       (0, 0, 255), 2)
         cv2.putText(frame, text, (startX, y_),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-        cv2.imwrite("frame{}_{}.png".format(x, y), frame)
+        cv2.imwrite("img/frame{}_{}.png".format(x, y), frame)
 
     key = cv2.waitKey(1) & 0xFF
 
