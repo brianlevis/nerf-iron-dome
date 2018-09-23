@@ -47,7 +47,7 @@ def print_client_version(message):
     print("received:{}".format(message["code"])) #this is an example of a websocket message with a payload from client
 
 @socketio.on("fire")
-def fire():
+def fire(message):
     nerf_turret.fire(1)
 
 @socketio.on("controller_state")
