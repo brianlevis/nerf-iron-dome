@@ -38,10 +38,8 @@ while True:
     frame = cv2.resize(frame, (400, 300))
     frame = cv2.flip(frame, -1)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
     # grab the frame dimensions and convert it to a blob
     (h, w) = frame.shape[:2]
-
     faces = faceCascade.detectMultiScale(
         gray,
         scaleFactor=1.1,
@@ -49,12 +47,11 @@ while True:
         minSize=(30, 30),
         flags = cv2.CASCADE_SCALE_IMAGE
     )
-
+    if len(faces) == 0:
+        continue
     print("Found {} faces".format(len(faces)))
-
     (fx, fy, fw, fh) = faces[0]
-    x, y = int(round((fx + fw / 2)), int(round(fy + fh / 2))
-
+    x, y = int(round(fx + fw / 2)), int(round(fy + fh / 2))
     print("Face at", (x, y))
     # Center: (216, 157)
     dx, dy = x-216, 157-y
