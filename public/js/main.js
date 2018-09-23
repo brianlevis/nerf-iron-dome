@@ -1,8 +1,11 @@
+/*
+Velocity-based controller state.
+Use this controller for laptops and non-mobile devices.
+*/
 var controllerState = {
   move_x: 0, // +1 -> right, -1 -> left
   move_y: 0, // +1 -> up, -1 -> down
   rev: false,
-  fire: false,
 };
 
 function clampControllerState() {
@@ -10,6 +13,19 @@ function clampControllerState() {
   if (controllerState.move_x > 1) controllerState.move_x = 1;
   if (controllerState.move_y < -1) controllerState.move_y = -1;
   if (controllerState.move_y > 1) controllerState.move_y = 1;
+}
+
+/*
+Position/orientation-based controller state.
+Use this controller for devices with orientation events enabled.
+*/
+var orientationState = {
+  pan: 0.0, // horizontal rotation of turret, in [-90, +90].
+  tilt: 0.0, // vertical rotation of turret, in [-90, +90].
+};
+
+function clampOrientationState() {
+  if ()
 }
 
 //MAIN BODY----------------------
@@ -52,6 +68,14 @@ function main() {
         controllerState.move_y -= 1;
         break;
       }
+      case "Control": {
+        controllerState.rev = true;
+        break;
+      }
+      case " ": {
+        socket.emit("fire", {});
+        break;
+      }
       default: {
         // do nothing
         break;
@@ -75,6 +99,10 @@ function main() {
       }
       case "ArrowDown": {
         controllerState.move_y += 1;
+        break;
+      }
+      case "Control": {
+        controllerState.rev = false;
         break;
       }
       default: {

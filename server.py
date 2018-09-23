@@ -46,12 +46,20 @@ def test_connect():
 def print_client_version(message):
     print("received:{}".format(message["code"])) #this is an example of a websocket message with a payload from client
 
+@socketio.on("fire")
+def fire():
+    nerf_turret.fire(1)
+
 @socketio.on("controller_state")
 def handle_controller_state(message):
     # recv 10 times per second
     velocity_x = int(message["move_x"] * -127)
     velocity_y = int(message["move_y"] * 127)
     nerf_turret.set_velocity(velocity_x, velocity_y)
+    if bool(message["rev"]):
+        nerf_turret.rev(100)
+    else:
+        nerf_turret.rev(0)
 
 @socketio.on('disconnect')
 def test_disconnect():
