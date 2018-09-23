@@ -7,11 +7,19 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
     <script src="../public/js/main.js"></script>
-
+    <style>
+      body {
+        background-color: #000;
+      }
+      #live-feed {
+        width: 100%;
+        height: auto;
+      }
+    </style>
 </head>
 
 <body>
-  <img src="{{ url_for('video_feed') }}">
+  <img id="live-feed" src="{{ url_for('video_feed') }}">
 </body>
 
 </html>
