@@ -7,11 +7,32 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
     <script src="../public/js/main.js"></script>
-
+    <style>
+      body {
+        background-color: #000;
+        color: #fff;
+      }
+      #live-feed {
+        max-width: 100%;
+        max-height: 100%;
+        margin: auto;
+        overflow: auto;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+    </style>
 </head>
 
 <body>
-  <img src="{{ url_for('video_feed') }}">
+  <img id="live-feed" src="{{ url_for('video_feed') }}">
+  <div class="debug-box">
+    <p id="alpha">alpha: 0.0</p>
+    <p id="beta">beta: 0.0</p>
+    <p id="gamma">gamma: 0.0</p>
+  </div>
 </body>
 
 </html>
