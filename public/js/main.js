@@ -5,6 +5,13 @@ var controllerState = {
   fire: false,
 };
 
+function clampControllerState() {
+  if (controllerState.move_x < -1) controllerState.move_x = -1;
+  if (controllerState.move_x > 1) controllerState.move_x = 1;
+  if (controllerState.move_y < -1) controllerState.move_y = -1;
+  if (controllerState.move_y > 1) controllerState.move_y = 1;
+}
+
 //MAIN BODY----------------------
 function main() {
   console.log("main loaded");
@@ -49,6 +56,7 @@ function main() {
         // do nothing
         break;
       }
+      clampControllerState();
     }
   });
   document.body.addEventListener("keyup", function (e) {
@@ -73,7 +81,13 @@ function main() {
         // do nothing
         break;
       }
+      clampControllerState();
     }
+  });
+  window.addEventListener("deviceorientation", function(e) {
+    document.getElementById("alpha").innerHTML = `alpha: ${e.alpha}`;
+    document.getElementById("beta").innerHTML = `beta: ${e.beta}`;
+    document.getElementById("gamma").innerHTML = `gamma: ${e.gamma}`;
   });
 }
 
