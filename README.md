@@ -19,7 +19,10 @@ There is a python server that provides a live stream of the camera located at `s
 ## Contributing
 ### Status
 The turret has been constructed, and may be controlled via a USB Xbox 360 Controller. It's electronics are ~~spaghetti~~ no longer spaghetti.
+
 The turret can track and attack faces, or an object of a certain color and size. Tracking is currently just done by moving the turret towards the target with movement and flywheel revving speed proportional to target distance.
+
+If not running tracking code, the turret may be operated manually via Xbox controller, or keyboard input to a camera livestream webpage.
 ### TODO
 Software:
 * Improve object tracking techniques
