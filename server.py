@@ -61,6 +61,23 @@ def handle_controller_state(message):
     else:
         nerf_turret.rev(0)
 
+@socketio.on("orientation_state")
+def handle_orientation_state(message):
+    # recv 10 times per second
+    pan = int(message["pan"] * -700)
+    tilt = int(message["tilt"] * 700)
+    # clamp pan and tilt values
+    if pan < -700:
+        pan = -700
+    elif pan > 700:
+        pan = 700
+
+    if tilt < -300:
+        tilt = -300
+    elif tilt > 500:
+        tilt = 500
+    nerf_turret.move(pan, tilt)
+
 @socketio.on('disconnect')
 def test_disconnect():
     print('CLIENT DISCONNECTED')
