@@ -33,7 +33,6 @@ time.sleep(2.0)
 
 # loop over the frames from the video stream
 while True:
-    print("[INFO] starting loop...")
     frame = vs.read()
     frame = cv2.resize(frame, (400, 300))
     frame = cv2.flip(frame, -1)
@@ -54,7 +53,7 @@ while True:
     x, y = int(round(fx + fw / 2)), int(round(fy + fh / 2))
     print("Face at", (x, y))
     # Center: (216, 157)
-    dx, dy = x-216, 157-y
+    dx, dy = x-216, 130-y
     set_change(dx, dy)
     # dx, dy = 150-x, y-115
     # vx, vy = dx // 100, dy // 100
@@ -67,8 +66,10 @@ while True:
         nerf_turret.rev(100)
     elif distance > 20:
         nerf_turret.rev(150)
+    elif distance > 10:
+        nerf_turret.rev(255)
     else:
-        nerf_turret.rev(150)
+        nerf_turret.rev(255)
         nerf_turret.fire(1)
     time.sleep(0.1)
     # # draw the bounding box of the face along with the associated
