@@ -42,12 +42,12 @@ while True:
     print("[INFO] starting loop...")
     lastUpdate = time.time()
     (grabbed, frame) = camera.read()
-    frame = cv2.resize(frame, (300, 400))
+    frame = cv2.resize(frame, (400, 300))
     frame = cv2.flip(frame, -1)
 
     # grab the frame dimensions and convert it to a blob
     (h, w) = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(frame, 1.0, (h, w), (104.0, 177.0, 123.0))
+    blob = cv2.dnn.blobFromImage(frame, 1.0, (w, h), (104.0, 177.0, 123.0))
 
     # pass the blob through the network and obtain the detections and
     # predictions
@@ -79,8 +79,11 @@ while True:
 
         print("Best face at", (x, y))
         (startX, startY, endX, endY) = box.astype("int")
-        dx, dy = 217-x, y-115
-        set_change(dx * 10, 0)
+        # Center: (216, 157)
+        dx, dy = x-216, y-157
+        print("dx:", dx)
+        set_change(dx, 0)
+        time.sleep(0.3)
         # dx, dy = 150-x, y-115
         # vx, vy = dx // 100, dy // 100
         # distance = math.sqrt(dx**2 + dy**2)
