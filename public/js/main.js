@@ -1,4 +1,5 @@
 var useOrientationState = false;
+var VELOCITY_FACTOR = 0.7;
 
 /*
 Velocity-based controller state.
@@ -65,19 +66,19 @@ function main() {
   document.body.addEventListener("keydown", function (e) {
     switch (e.key) {
       case "ArrowLeft": {
-        controllerState.move_x = -1;
+        controllerState.move_x = -VELOCITY_FACTOR;
         break;
       }
       case "ArrowRight": {
-        controllerState.move_x = 1;
+        controllerState.move_x = VELOCITY_FACTOR;
         break;
       }
       case "ArrowUp": {
-        controllerState.move_y = 1;
+        controllerState.move_y = VELOCITY_FACTOR;
         break;
       }
       case "ArrowDown": {
-        controllerState.move_y = -1;
+        controllerState.move_y = -VELOCITY_FACTOR;
         break;
       }
       case "Control": {
